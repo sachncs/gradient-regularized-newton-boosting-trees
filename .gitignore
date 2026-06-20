@@ -88,3 +88,12 @@ experiments/*.pdf
 
 # Documentation build
 docs/_build/
+
+# Coverage
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# Pre-commit
+.pre-commit-cache

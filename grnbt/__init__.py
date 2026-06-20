@@ -5,7 +5,11 @@ Pure Python reproduction of:
   Global Convergence", arXiv:2605.00581v1.
 """
 
-from grnbt.boosting import GradientRegularizedNewtonBoosting, VanillaNewtonBoosting
+from grnbt.boosting import (
+    GradientRegularizedNewtonBoosting,
+    MultiClassNewtonBoosting,
+    VanillaNewtonBoosting,
+)
 from grnbt.datasets import load_higgs_subset, load_wine_quality
 from grnbt.diagnostics import (
     cosine_angle_theta,
@@ -19,7 +23,7 @@ from grnbt.losses import (
     CharbonnierLoss,
     MSELoss,
 )
-from grnbt.tree import NewtonTree
+from grnbt.tree import MultiClassNewtonTree, NewtonTree
 
 __all__ = [
     "MSELoss",
@@ -27,8 +31,10 @@ __all__ = [
     "BinaryCrossEntropyLoss",
     "CategoricalCrossEntropyLoss",
     "NewtonTree",
+    "MultiClassNewtonTree",
     "VanillaNewtonBoosting",
     "GradientRegularizedNewtonBoosting",
+    "MultiClassNewtonBoosting",
     "exact_newton_direction",
     "cosine_angle_theta",
     "weak_gradient_edge_gamma",

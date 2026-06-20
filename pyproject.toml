@@ -9,7 +9,7 @@ description = "Gradient Regularized Newton Boosting Trees — Pure Python reprod
 readme = "README.md"
 license = {text = "MIT"}
 authors = [
-    {name = "Reproduction Author", email = "repro@example.com"},
+    {name = "Sachin", email = "sachncs@gmail.com"},
 ]
 keywords = ["boosting", "gradient-regularized-newton", "gbdt", "machine-learning"]
 classifiers = [
@@ -32,12 +32,14 @@ dependencies = [
 [project.optional-dependencies]
 datasets = ["scikit-learn>=1.0.0"]
 plot = ["matplotlib>=3.4.0"]
-dev = ["pytest>=7.0.0", "scikit-learn>=1.0.0", "matplotlib>=3.4.0"]
+dev = ["pytest>=7.0.0", "pytest-cov>=4.0.0", "scikit-learn>=1.0.0", "matplotlib>=3.4.0"]
 
 [project.urls]
-Homepage = "https://github.com/example/grnbt"
-Documentation = "https://github.com/example/grnbt/docs"
-"Bug Tracker" = "https://github.com/example/grnbt/issues"
+Homepage = "https://github.com/sachn-cs/gradient-regularized-newton-boosting-trees"
+Documentation = "https://github.com/sachn-cs/gradient-regularized-newton-boosting-trees/tree/main/docs"
+Repository = "https://github.com/sachn-cs/gradient-regularized-newton-boosting-trees"
+"Bug Tracker" = "https://github.com/sachn-cs/gradient-regularized-newton-boosting-trees/issues"
+Changelog = "https://github.com/sachn-cs/gradient-regularized-newton-boosting-trees/blob/main/CHANGELOG.md"
 
 [tool.setuptools.packages.find]
 where = ["."]
