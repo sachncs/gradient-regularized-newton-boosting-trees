@@ -41,7 +41,7 @@ References
 Zozoulenko et al. (2026), Algorithm 1, Algorithm 2, and Proposition 5.1.
 """
 
-from typing import Optional
+from typing import Any, Optional
 
 import numpy as np
 
@@ -137,7 +137,16 @@ class BaseBoosting:
         self.min_samples_leaf = min_samples_leaf
         self.lam_base = lam_base
         self.verbose = verbose
-        self.trees: list[NewtonTree] = []
+        # ``trees`` is intentionally typed as ``list[Any]`` because the
+        # element type depends on the subclass: scalar engines store
+        # ``NewtonTree`` instances, while
+        # ``MultiClassNewtonBoosting`` stores ``MultiClassNewtonTree``
+        # instances. The two tree classes are independent and Python's
+        # list invariance makes a tighter annotation (e.g.
+        # ``list[NewtonTree]``) incompatible with the multi-class
+        # override. Using ``Any`` here lets each subclass narrow the
+        # element type without falling back to ``# type: ignore``.
+        self.trees: list[Any] = []
         self.F0: Optional[np.ndarray] = None
         self.history = History()
 
@@ -226,12 +235,16 @@ class BaseBoosting:
                 "Model has not been fitted yet. Call fit() before predict()."
             )
 
-        # F0 is stored as the full initial prediction vector for the training set.
-        # For prediction on new data we assume a constant initial prediction
-        # equal to the first element (the common case when F0 is constant).
+        # When F0 was stored as a 0-D scalar (the ``_init_prediction``
+        # default), use it directly. Otherwise it is an ``(n_train,)``
+        # array and we take its mean — the standard choice for
+        # non-constant baselines.
         f_out: np.ndarray
-        if np.isscalar(self.F0):
-            f_out = np.full(x.shape[0], float(self.F0), dtype=float)
+        if self.F0.ndim == 0:
+            # ``.item()`` extracts the underlying Python scalar, which
+            # is the type-safe equivalent of ``float(F0)`` for a 0-D
+            # ndarray and keeps mypy happy.
+            f_out = np.full(x.shape[0], self.F0.item(), dtype=float)
         else:
             # Use the mean of F0 as the constant baseline for new samples.
             baseline = float(np.mean(self.F0))
@@ -434,6 +447,10 @@ class MultiClassNewtonBoosting(BaseBoosting):
             raise ValueError(f"n_classes must be >= 2, got {n_classes}")
         self.n_classes = n_classes
         self.softmax_output = softmax_output
+        # Narrow the inherited ``list[Any]`` ``trees`` attribute to the
+        # multi-class element type. Because ``Any``-typed attributes
+        # can be specialized in subclasses without raising
+        # ``assignment`` errors, no ``# type: ignore`` is needed here.
         self.trees: list[MultiClassNewtonTree] = []
 
     def fit(self, x: np.ndarray, y: np.ndarray) -> "MultiClassNewtonBoosting":
