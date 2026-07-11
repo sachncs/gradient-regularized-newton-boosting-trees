@@ -1,4 +1,17 @@
-"""Tests for loss functions and their analytical properties."""
+"""Tests for loss functions and their analytical properties.
+
+This module exercises the four concrete loss classes plus the
+abstract :class:`grnbt.losses.Loss` interface. It verifies:
+
+* shape contracts (``gradient`` and ``hessian`` return inputs of
+  compatible shape with ``y_pred``);
+* correctness of values (e.g., ``MSE.loss(y, y) == 0``, the
+  ``M_0`` constants match Appendix A of the paper);
+* finite-difference agreement (the analytical ``CharbonnierLoss.
+  gradient`` matches a central-difference approximation);
+* defensive validation (rejection of non-NumPy inputs, shape
+  mismatch, ``NaN``/``Inf``, and non-binary labels for BCE/CCE).
+"""
 
 import numpy as np
 import pytest

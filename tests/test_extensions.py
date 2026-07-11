@@ -1,4 +1,17 @@
-"""Tests for optional extensions (not part of paper baseline)."""
+"""Tests for optional extensions (not part of the paper baseline).
+
+These tests cover :class:`grnbt.extensions.histogram_tree.HistogramNewtonTree`:
+
+* it must fit and predict with arbitrary ``n_bins`` (including the
+  trivial ``n_bins == 1`` case which produces a single leaf);
+* its predictions must be positively correlated with those of the
+  exact :class:`grnbt.tree.NewtonTree` (not identical because the
+  threshold candidates are different);
+* invalid ``n_bins`` values are rejected.
+
+The tests are deliberately small because the histogram tree is only
+used as a downstream speed-up, not in the paper reproduction.
+"""
 
 import numpy as np
 import pytest

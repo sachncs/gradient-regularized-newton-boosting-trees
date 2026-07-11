@@ -1,4 +1,17 @@
-"""Tests for NewtonTree weak learner."""
+"""Tests for the :class:`grnbt.tree.NewtonTree` weak learner.
+
+The cases span:
+
+* closed-form leaf weight (``w = -Σg / (Σh + λ)``);
+* hyperparameter enforcement (``max_depth``, ``min_samples_leaf``,
+  ``min_gain``, ``λ >= 0``);
+* edge cases: single sample, constant features, near-zero Hessians,
+  empty input, ``NaN``/``Inf``;
+* surrogate loss monotonicity with depth (deeper trees achieve
+  equal or lower quadratic surrogate ``Q(f) = ⟨g, f⟩ + 0.5 ⟨f, H f⟩``);
+* sample-count invariant: every leaf covers at least
+  ``min_samples_leaf`` samples.
+"""
 
 import numpy as np
 import pytest

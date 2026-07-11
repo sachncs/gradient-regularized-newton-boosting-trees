@@ -1,4 +1,19 @@
-"""Tests for boosting engines."""
+"""Tests for the scalar-output boosting engines.
+
+Covers :class:`VanillaNewtonBoosting` and
+:class:`GradientRegularizedNewtonBoosting` for:
+
+* basic fit/predict shape correctness;
+* the core paper claim that GRN actually uses an adaptive ``λ_k``
+  that grows with ``||g_k||``;
+* loss-decrease invariant for strongly convex losses (MSE);
+* hyperparameter validation (negative ``learning_rate``, zero
+  ``n_estimators``, etc.);
+* defensive validation of inputs (empty data, zero features, ``NaN``);
+* history logging (the engine records ``loss``, ``lambda_k``, and
+  ``grad_norm`` at every iteration);
+* predict on previously-unseen sample counts.
+"""
 
 import numpy as np
 import pytest

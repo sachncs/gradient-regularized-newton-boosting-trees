@@ -1,4 +1,18 @@
-"""Tests for multi-class boosting engines."""
+"""Tests for the multi-class boosting engine.
+
+Covers :class:`MultiClassNewtonBoosting` for:
+
+* fit/predict shape correctness;
+* probability simplex constraint (rows of softmax output sum to 1);
+* ``softmax_output=False`` (logits) mode;
+* loss-decrease invariant;
+* adaptive ``λ_k`` from the GRN-style update;
+* hyperparameter and label validation;
+* empty-data / ``NaN`` defenses.
+
+These mirror the scalar-output tests in :mod:`tests.test_boosting`
+but operate on integer class labels rather than continuous targets.
+"""
 
 import numpy as np
 import pytest

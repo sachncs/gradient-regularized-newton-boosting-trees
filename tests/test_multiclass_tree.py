@@ -1,4 +1,15 @@
-"""Tests for MultiClassNewtonTree weak learner."""
+"""Tests for :class:`grnbt.tree.MultiClassNewtonTree` weak learner.
+
+The multi-class tree shares most of its structure with
+:class:`grnbt.tree.NewtonTree` but uses vector-valued leaf weights
+and aggregates Newton gain across classes. These tests verify:
+
+* closed-form leaf weights ``w_k = -Σg_k / (Σh_k + λ)`` per class;
+* shape correctness for the per-class gradient/Hessian pair;
+* aggregate surrogate monotonicity with depth;
+* edge cases (single sample, constant features, ``NaN``/``Inf``);
+* strict input validation (2-D gradients, ``n_classes`` match).
+"""
 
 import numpy as np
 import pytest

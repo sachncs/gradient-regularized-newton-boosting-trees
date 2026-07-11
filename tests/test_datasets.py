@@ -1,4 +1,17 @@
-"""Tests for dataset loaders."""
+"""Tests for the dataset loaders.
+
+Two cases are covered per loader:
+
+* shape, finiteness, and (for wine) standardization — these always
+  run in offline mode by relying on the synthetic fallback for
+  Higgs and a (typically cached) network fetch for wine.
+* input validation — :func:`grnbt.datasets.load_higgs_subset`
+  rejects non-positive ``n_samples``.
+
+These tests do not assert exact row counts because the underlying
+UCI / OpenML datasets can change over time. They do assert that
+every returned array is finite and has the expected rank.
+"""
 
 import numpy as np
 import pytest

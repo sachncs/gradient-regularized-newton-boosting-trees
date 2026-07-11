@@ -1,8 +1,20 @@
-"""Reproduce Higgs weak-learner diagnostics (Paper Section 6, Fig. 2).
+"""Reproduce Higgs weak-learner diagnostics (Paper §6, Fig. 2).
 
-Computes cosine angle Θ_k and weak gradient edge γ_k per iteration
-for tree depths 2, 4, and 6.
-Expected result: deeper trees produce larger angles/edges; both plateau positive.
+Computes the cosine angle ``Θ_k`` and the weak gradient edge ``γ_k``
+at every boosting iteration for tree depths ``{2, 4, 6}`` on a
+10k-row subset of the Higgs dataset with binary cross-entropy loss.
+
+The paper observes that *deeper* trees produce larger ``Θ_k`` and
+``γ_k`` (the weak learner is more aligned with the exact Newton
+direction), and both metrics plateau at positive values as training
+progresses. This script captures both metrics so the trends can be
+plotted or tabulated.
+
+Run with ``python experiments/higgs_diagnostics.py`` from the
+project root. Output:
+    * ``experiments/higgs_diagnostics_results.npz`` containing the
+      keys ``theta_depth_<d>`` and ``gamma_depth_<d>`` for each
+      depth ``d``.
 """
 
 import os
@@ -23,7 +35,12 @@ from grnbt.losses import BinaryCrossEntropyLoss
 
 
 def main() -> None:
-    """Run Higgs diagnostics experiment and save results."""
+    """Run the Higgs diagnostics experiment and save results.
+
+    Side effects:
+        Writes ``experiments/higgs_diagnostics_results.npz`` with
+        per-iteration arrays of ``θ`` and ``γ`` for each tree depth.
+    """
     x, y = load_higgs_subset(n_samples=10_000)
     n_estimators = 50
     depths = [2, 4, 6]

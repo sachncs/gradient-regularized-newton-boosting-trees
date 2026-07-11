@@ -1,7 +1,27 @@
-"""Reproduce the Charbonnier-loss experiment on Wine Quality (Paper Section 6).
+"""Reproduce the Charbonnier-loss experiment on Wine Quality (Paper §6, Fig. 1).
 
-Compares Vanilla Newton Boosting, GRN, and a static high-lambda baseline.
-Expected result: vanilla diverges, GRN converges fastest, static lambda is biased.
+Compares three Newton-boosting configurations on the Wine Quality
+regression dataset with the Charbonnier loss:
+
+1. ``"Vanilla"``     — :class:`VanillaNewtonBoosting` with
+   ``λ_base = 0`` (unregularized).
+2. ``"GRN"``         — :class:`GradientRegularizedNewtonBoosting`
+   with ``λ_base = 0`` (purely adaptive regularization).
+3. ``"StaticHighLam"`` — :class:`VanillaNewtonBoosting` with
+   ``λ_base = 10`` (heavily regularized baseline).
+
+The paper reports (and this script reproduces) that vanilla Newton
+*diverges* on the Charbonnier loss because the Hessian is not
+constant, while GRN's adaptive ``λ_k`` controls the iteration so
+the loss decreases steadily. The static high-lambda baseline is
+*biased*: it converges but to a worse optimum than GRN.
+
+Run with ``python experiments/wine_charbonnier.py`` from the project
+root. Outputs:
+    * ``experiments/wine_charbonnier_results.npz`` — per-iteration
+      loss arrays for each model.
+    * ``experiments/wine_charbonnier.png`` — log-scale plot
+      (requires ``matplotlib``).
 """
 
 import os
@@ -17,7 +37,12 @@ from grnbt.losses import CharbonnierLoss
 
 
 def main() -> None:
-    """Run Wine Quality Charbonnier experiment and save results."""
+    """Run the Wine Quality Charbonnier experiment and save results.
+
+    Side effects:
+        Writes ``experiments/wine_charbonnier_results.npz`` and, if
+        matplotlib is installed, ``experiments/wine_charbonnier.png``.
+    """
     x, y = load_wine_quality()
     y = (y - np.mean(y)) / (np.std(y) + 1e-8)
 

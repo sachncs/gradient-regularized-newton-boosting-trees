@@ -1,4 +1,16 @@
-"""Tests for utility helpers."""
+"""Tests for the small helpers in :mod:`grnbt.utils`.
+
+Covers three concerns:
+
+* :func:`empirical_norm` — unweighted RMS, weighted ``L^2``, and
+  strict validation (empty arrays, ``NaN``/``Inf``, negative or
+  mis-shaped weights).
+* :func:`unique_thresholds` — midpoint computation, empty result
+  for fewer than two unique values, and input validation.
+* :class:`History` — append/get/keys semantics, deep-copy contract
+  of :meth:`History.as_dict`, and rejection of non-string keys
+  and non-finite values.
+"""
 
 import numpy as np
 import pytest
