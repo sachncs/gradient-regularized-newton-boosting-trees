@@ -1,114 +1,122 @@
-# GRNBT — Gradient Regularized Newton Boosting Trees
+<p align="center">
+  <h1 align="center">GRNBT</h1>
+  <p align="center">Pure-Python reproduction of Gradient Regularized Newton Boosting Trees with global convergence.</p>
+  <p align="center">
+    <a href="#installation"><img src="https://img.shields.io/badge/python-3.9%20%7C%203.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue" alt="Python"></a>
+    <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="License"></a>
+    <a href="https://github.com/sachn-cs/gradient-regularized-newton-boosting-trees/actions"><img src="https://img.shields.io/github/actions/workflow/status/sachn-cs/gradient-regularized-newton-boosting-trees/ci.yml?branch=main" alt="CI"></a>
+    <a href="https://codecov.io/gh/sachn-cs/gradient-regularized-newton-boosting-trees"><img src="https://codecov.io/gh/sachn-cs/gradient-regularized-newton-boosting-trees/branch/main/graph/badge.svg" alt="codecov"></a>
+    <a href="https://pypi.org/project/grnbt/"><img src="https://img.shields.io/pypi/v/grnbt.svg" alt="PyPI"></a>
+    <a href="https://github.com/sachn-cs/gradient-regularized-newton-boosting-trees/stargazers"><img src="https://img.shields.io/github/stars/sachn-cs/gradient-regularized-newton-boosting-trees" alt="Stars"></a>
+    <a href="https://mypy-lang.org/"><img src="https://img.shields.io/badge/mypy-strict-green.svg" alt="Checked with mypy"></a>
+  </p>
+</p>
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
-[![CI](https://github.com/sachn-cs/gradient-regularized-newton-boosting-trees/actions/workflows/ci.yml/badge.svg)](https://github.com/sachn-cs/gradient-regularized-newton-boosting-trees/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/sachn-cs/gradient-regularized-newton-boosting-trees/branch/main/graph/badge.svg)](https://codecov.io/gh/sachn-cs/gradient-regularized-newton-boosting-trees)
-[![PyPI version](https://img.shields.io/pypi/v/grnbt.svg)](https://pypi.org/project/grnbt/)
-
-Pure Python reproduction of:
+**GRNBT** is a pure-Python/NumPy reproduction of:
 
 > N. Zozoulenko, D. Falkowski, T. Cass, L. Gonon,
-> "Gradient Regularized Newton Boosting Trees with Global Convergence",
+> *Gradient Regularized Newton Boosting Trees with Global Convergence*,
 > [arXiv:2605.00581v1](https://arxiv.org/abs/2605.00581v1)
+
+It implements both **Vanilla Restricted Newton Boosting** (Algorithm 1)
+and **Gradient Regularized Newton Boosting** (Algorithm 2) with a
+multi-class extension, four analytic losses, a Newton tree weak learner,
+and Hilbert-space diagnostics for verifying the paper's identities.
+The package has **no framework dependencies** at runtime — only NumPy —
+making it ideal as a faithful, transparent reference implementation.
+
+---
 
 ## Features
 
-- **Vanilla Newton Boosting** — Standard second-order GBDT with static L2 regularization
-- **Gradient Regularized Newton (GRN)** — Adaptive regularization `λ_k = λ_base + sqrt(M ||g_k||)` achieving O(1/k²) convergence
-- **Multi-class classification** — K-class boosting with vector-valued trees and softmax output
-- **Four loss functions** — MSE, Charbonnier, Binary Cross-Entropy, Categorical Cross-Entropy with analytically known M₀ constants
-- **Hilbert-space diagnostics** — Exact Newton directions, cosine angles Θ_k, weak gradient edges γ_k, and Lemma 4.2 verification
-- **Pure NumPy implementation** — No framework dependencies, from-scratch research reproduction
-- **Comprehensive test suite** — 126 tests covering correctness, edge cases, and mathematical identities
-- **Reproducible experiments** — Scripts to reproduce Figures 1 and 2 from the paper
+- **Vanilla Newton Boosting** — Static ``λ_k = λ_base`` second-order GBDT, Algorithm 1.
+- **Gradient Regularized Newton Boosting (GRN)** — Adaptive
+  ``λ_k = λ_base + sqrt(M · ||g_k||)`` with ``M = M_0 · √N``
+  (Proposition 5.1); achieves the paper's ``O(1/k²)`` global rate.
+- **Multi-Class Boosting** — ``K``-class softmax output with
+  vector-valued tree leaves and shared split structure across classes.
+- **Four Loss Functions** — MSE, Charbonnier, Binary Cross-Entropy,
+  Categorical Cross-Entropy; all with analytically known ``M_0``.
+- **Hilbert-Space Diagnostics** — Exact Newton direction ``f = -g / (h + λ)``,
+  cosine angle ``Θ_k``, weak gradient edge ``γ_k``, and Lemma 4.2 checks.
+- **Exact Greedy Splits** — Closed-form leaf weights
+  ``w = -Σg / (Σh + λ)`` and exact Newton gain, matching the paper.
+- **Pure NumPy Implementation** — No C extensions, no framework
+  dependencies; from-scratch research reproduction.
+- **Comprehensive Test Suite** — 126 tests covering correctness,
+  edge cases, mathematical identities, and validation.
+- **Reproducible Experiments** — Scripts to reproduce Figures 1 and 2
+  of the paper on Wine Quality and Higgs.
+- **Optional Extensions** — Histogram-based split finding (not part of
+  paper baseline) under ``grnbt.extensions``.
+
+---
 
 ## Installation
 
-### Quick Install
+### From PyPI
 
 ```bash
-pip install -e ".[dev]"
+pip install grnbt
 ```
 
-### From Source
+### From source
 
 ```bash
 git clone https://github.com/sachn-cs/gradient-regularized-newton-boosting-trees.git
 cd gradient-regularized-newton-boosting-trees
+pip install -e .
+```
+
+### With dev dependencies
+
+```bash
 pip install -e ".[dev]"
 ```
 
-### Dependencies
+**Requirements**: Python ≥ 3.9, NumPy ≥ 1.21.
+Optional dependencies: scikit-learn ≥ 1.0 (datasets), matplotlib ≥ 3.4
+(experiment plots), pytest ≥ 7 (development).
 
-| Package | Required | Purpose |
-|---------|----------|---------|
-| `numpy>=1.21.0` | Yes | Core numerical operations |
-| `scikit-learn>=1.0.0` | No | Dataset fetching |
-| `matplotlib>=3.4.0` | No | Experiment plotting |
-| `pytest>=7.0.0` | No | Test runner |
+---
 
-## Usage
+## Quick Start
 
-### Basic Example
+### Vanilla Newton Boosting (Regression)
 
 ```python
 import numpy as np
-from grnbt import GradientRegularizedNewtonBoosting, CharbonnierLoss
-
-# Generate synthetic data
-np.random.seed(42)
-X = np.random.randn(1000, 10)
-y = X @ np.random.randn(10) + 0.1 * np.random.randn(1000)
-
-# Train GRN boosting model
-model = GradientRegularizedNewtonBoosting(
-    loss=CharbonnierLoss(),
-    n_rounds=100,
-    learning_rate=0.1,
-    max_depth=4,
-    lambda_base=1e-3,
-)
-
-model.fit(X, y)
-predictions = model.predict(X)
-```
-
-### Vanilla Newton Boosting
-
-```python
 from grnbt import VanillaNewtonBoosting, MSELoss
+
+rng = np.random.default_rng(42)
+X = rng.standard_normal((500, 8))
+y = X[:, 0] + 0.5 * X[:, 1] ** 2 + 0.1 * rng.standard_normal(500)
 
 model = VanillaNewtonBoosting(
     loss=MSELoss(),
-    n_rounds=100,
+    n_estimators=100,
     learning_rate=0.1,
     max_depth=4,
 )
-
 model.fit(X, y)
+preds = model.predict(X)
+print(f"final loss: {model.history.get('loss')[-1]:.6f}")
 ```
 
-### Diagnostics
+### Gradient Regularized Newton Boosting
 
 ```python
 from grnbt import GradientRegularizedNewtonBoosting, CharbonnierLoss
-from grnbt.diagnostics import compute_cosine_angle, compute_weak_gradient_edge
 
 model = GradientRegularizedNewtonBoosting(
     loss=CharbonnierLoss(),
-    n_rounds=50,
-    learning_rate=0.1,
+    n_estimators=100,
+    learning_rate=1.0,
     max_depth=4,
     lambda_base=1e-3,
-    record_diagnostics=True,
 )
-
 model.fit(X, y)
-
-# Compute diagnostics
-theta_k = compute_cosine_angle(model)
-gamma_k = compute_weak_gradient_edge(model)
+preds = model.predict(X)
 ```
 
 ### Multi-Class Classification
@@ -117,187 +125,279 @@ gamma_k = compute_weak_gradient_edge(model)
 import numpy as np
 from grnbt import MultiClassNewtonBoosting, CategoricalCrossEntropyLoss
 
-# Generate synthetic 3-class data
-np.random.seed(42)
-X = np.random.randn(500, 8)
+rng = np.random.default_rng(42)
+X = rng.standard_normal((500, 8))
 logits = np.stack([X[:, 0], -X[:, 0] + X[:, 1], X[:, 2]], axis=1)
 y = np.argmax(logits, axis=1)
 
-# Train multi-class GRN boosting model
 model = MultiClassNewtonBoosting(
     loss=CategoricalCrossEntropyLoss(n_classes=3),
     n_estimators=100,
     learning_rate=0.1,
     max_depth=3,
-    lam_base=1e-3,
+    lambda_base=1e-3,
     n_classes=3,
 )
+model.fit(X, y)
+probs = model.predict_proba(X)        # shape (500, 3), rows sum to 1
+```
 
+### Hilbert-Space Diagnostics
+
+```python
+from grnbt import GradientRegularizedNewtonBoosting, CharbonnierLoss
+from grnbt.diagnostics import (
+    cosine_angle_theta,
+    exact_newton_direction,
+    verify_lemma_4_2,
+    weak_gradient_edge_gamma,
+)
+
+# Build a small ensemble and inspect Θ_k, γ_k per iteration.
+model = GradientRegularizedNewtonBoosting(
+    loss=CharbonnierLoss(), n_estimators=20, max_depth=3, lambda_base=0.0,
+)
 model.fit(X, y)
 
-# Get probabilities
-probs = model.predict(X)  # (n_samples, 3) probabilities summing to 1
-logits = model.predict_proba(X)  # Same as predict with softmax_output=True
+# Replay the last iteration to compute diagnostics on demand.
+F_last = np.zeros_like(y)
+for k, tree in enumerate(model.trees):
+    g = model.loss.gradient(y, F_last)
+    h = model.loss.hessian(y, F_last)
+    lam_k = model.history.get("lambda_k")[k]
+    f_exact = exact_newton_direction(g, h, lam_k)
+    f_weak = tree.predict(X)
+    theta_k = cosine_angle_theta(g, h, f_exact, f_weak)
+    gamma_k = weak_gradient_edge_gamma(g, h, lam_k, f_weak)
+    F_last += model.learning_rate * f_weak
 ```
 
-## Experiments
+---
 
-### Wine Quality — Charbonnier Loss (Figure 1)
+## Configuration
+
+### Boosting Hyperparameters
+
+| Parameter         | Default | Description |
+|-------------------|---------|-------------|
+| `loss`            | *required* | Loss function instance (`MSELoss`, `CharbonnierLoss`, `BinaryCrossEntropyLoss`, `CategoricalCrossEntropyLoss`). |
+| `n_estimators`    | `100`    | Number of boosting rounds ``K``. |
+| `learning_rate`   | `1.0`    | Step size ``η`` (paper default). |
+| `max_depth`       | `3`      | Maximum tree depth (root depth `0`). |
+| `min_samples_leaf`| `1`      | Minimum samples per leaf. |
+| `lambda_base`     | `0.0`    | Static ``λ_base`` regularization component. |
+| `verbose`         | `False`  | Print metrics every 10 iterations. |
+
+### Adaptive Regularization (GRN only)
+
+GRN adds ``sqrt(M · ||g_k||)`` to ``λ_base``, where ``M = M_0 · √N``
+and ``M_0`` is supplied by the loss (Appendix A):
+
+| Loss                          | ``M_0`` |
+|-------------------------------|---------|
+| `MSELoss`                     | `0.0`   |
+| `CharbonnierLoss`             | `1.0`   |
+| `BinaryCrossEntropyLoss`      | `0.25`  |
+| `CategoricalCrossEntropyLoss` | `0.25`  |
+
+### Multi-Class Only
+
+| Parameter       | Default | Description |
+|-----------------|---------|-------------|
+| `n_classes`     | `2`     | Number of target classes ``K`` (≥ 2). |
+| `softmax_output`| `True`  | `predict()` returns probabilities; if `False`, returns logits. |
+
+---
+
+## Reproducible Experiments
 
 ```bash
+# Wine Quality — Charbonnier Loss (Figure 1)
 python experiments/wine_charbonnier.py
-```
+# produces experiments/wine_charbonnier_results.npz and .png
 
-Compares Vanilla Newton, GRN, and static high-lambda baseline. Results saved to `experiments/wine_charbonnier_results.npz`.
-
-### Higgs — Weak Learner Diagnostics (Figure 2)
-
-```bash
+# Higgs — Weak Learner Diagnostics (Figure 2)
 python experiments/higgs_diagnostics.py
-```
+# produces experiments/higgs_diagnostics_results.npz
 
-Computes Θ_k and γ_k per iteration for tree depths 2, 4, 6. Results saved to `experiments/higgs_diagnostics_results.npz`.
-
-### Ablations
-
-```bash
+# Hyperparameter Ablations
 python experiments/ablations.py
+# produces experiments/ablations.csv
 ```
 
-Grid search over loss, η, depth, λ_base, and engine type. Results saved to `experiments/ablations.csv`.
+See [`docs/experiments.md`](docs/experiments.md) for expected
+behavior, analysis snippets, and reproducibility notes.
+
+---
 
 ## Project Structure
 
 ```
-grnbt/
-├── __init__.py          # Package exports
-├── losses.py            # Loss base + MSE, Charbonnier, BCE, CCE
-├── tree.py              # NewtonTree + MultiClassNewtonTree weak learners
-├── boosting.py          # VanillaNewton + GRN + MultiClassNewton boosting engines
-├── diagnostics.py       # Θ_k, γ_k, exact Newton, Lemma 4.2 checks
-├── datasets.py          # Wine Quality and Higgs loaders
-├── utils.py             # Norms, thresholds, history logging
-└── extensions/
-    ├── __init__.py
-    └── histogram_tree.py  # Histogram-based split finding (non-paper)
-tests/
-├── conftest.py              # Shared fixtures
-├── test_losses.py           # Loss correctness tests (16 cases)
-├── test_tree.py             # Tree structure tests (12 cases)
-├── test_boosting.py         # Engine loop tests (14 cases)
-├── test_multiclass_tree.py  # Multi-class tree tests (14 cases)
-├── test_multiclass_boosting.py  # Multi-class boosting tests (13 cases)
-├── test_diagnostics.py      # Diagnostic identity tests (13 cases)
-├── test_datasets.py         # Dataset loading tests (7 cases)
-├── test_utils.py            # Utility tests (14 cases)
-└── test_extensions.py       # Extension tests (4 cases)
-experiments/
-├── wine_charbonnier.py  # Paper Fig 1 reproduction
-├── higgs_diagnostics.py # Paper Fig 2 reproduction
-└── ablations.py         # Hyperparameter ablations
-docs/
-├── math.md              # Mathematical foundations, notation, formulas
-├── architecture.md      # System architecture and design decisions
-├── api.md               # Complete API reference
-├── experiments.md       # Experiment descriptions and reproducibility notes
-└── fidelity.md          # Section-by-section fidelity report
+gradient-regularized-newton-boosting-trees/
+├── grnbt/                       # Core package (pure NumPy)
+│   ├── __init__.py              # Public API exports
+│   ├── losses.py                # MSE/Charbonnier/BCE/CCE + M_0
+│   ├── tree.py                  # NewtonTree + MultiClassNewtonTree
+│   ├── boosting.py              # Vanilla / GRN / Multi-class engines
+│   ├── diagnostics.py           # Θ_k, γ_k, exact Newton, Lemma 4.2
+│   ├── datasets.py              # Wine Quality and Higgs loaders
+│   ├── utils.py                 # Norms, thresholds, history logger
+│   └── extensions/
+│       ├── __init__.py
+│       └── histogram_tree.py    # Bin-based split finding (non-paper)
+├── tests/                       # Test suite (126 cases)
+│   ├── conftest.py              # Shared fixtures
+│   ├── test_losses.py           # 20 cases — losses, M_0
+│   ├── test_tree.py             # 16 cases — single-tree logic
+│   ├── test_boosting.py         # 17 cases — scalar engines
+│   ├── test_multiclass_tree.py  # 14 cases — K-class trees
+│   ├── test_multiclass_boosting.py  # 13 cases — K-class engines
+│   ├── test_diagnostics.py      # 17 cases — Θ, γ, Lemma 4.2
+│   ├── test_datasets.py         # 7 cases  — Wine/Higgs loaders
+│   ├── test_utils.py            # 18 cases — utilities
+│   └── test_extensions.py       # 4 cases  — histogram tree
+├── experiments/                 # Paper reproductions
+│   ├── wine_charbonnier.py      # Fig. 1 (Wine + Charbonnier)
+│   ├── higgs_diagnostics.py     # Fig. 2 (Higgs + BCE)
+│   └── ablations.py             # Loss / η / depth / λ_base grid
+├── docs/                        # Documentation
+│   ├── math.md                  # Mathematical foundations
+│   ├── architecture.md          # Module responsibilities & data flow
+│   ├── api.md                   # Complete API reference
+│   ├── experiments.md           # Experiment descriptions
+│   └── fidelity.md              # Paper-section fidelity report
+├── pyproject.toml               # Build & tool config
+└── README.md
 ```
 
-## Documentation
-
-| Document | Description |
-|----------|-------------|
-| [Mathematical Foundations](docs/math.md) | Restated problem definition, loss formulas, tree equations, convergence theorems |
-| [Architecture](docs/architecture.md) | Module responsibilities, data flow, design decisions, extension points |
-| [API Reference](docs/api.md) | Complete reference for all public classes and functions |
-| [Experiments](docs/experiments.md) | Expected behavior, analysis scripts, reproducibility notes |
-| [Fidelity Report](docs/fidelity.md) | Exact/approximate/assumed component tracking against the paper |
+---
 
 ## Development
 
-### Commands
-
-| Command | Description |
-|---------|-------------|
-| `pip install -e ".[dev]"` | Install with development dependencies |
-| `pytest tests/ -v` | Run test suite |
-| `isort --check-only --diff grnbt tests experiments` | Check import sorting |
-| `black --check --diff grnbt tests experiments` | Check code formatting |
-| `mypy grnbt --ignore-missing-imports` | Type checking |
-| `isort grnbt tests experiments` | Auto-sort imports |
-| `black grnbt tests experiments` | Auto-format code |
-
-### Running All Checks
-
 ```bash
+# Install with dev dependencies
+pip install -e ".[dev]"
+
+# Run tests with coverage
+pytest tests/ -v --cov=grnbt --cov-report=term-missing
+
+# Check import sorting
 isort --check-only --diff grnbt tests experiments
+
+# Check formatting
 black --check --diff grnbt tests experiments
+
+# Type check
 mypy grnbt --ignore-missing-imports
-pytest tests/ -v
+
+# All checks
+isort --check-only grnbt tests experiments \
+  && black --check grnbt tests experiments \
+  && mypy grnbt --ignore-missing-imports \
+  && pytest tests/ -v
 ```
 
-### Auto-Format
+### Code Style
 
-```bash
-isort grnbt tests experiments
-black grnbt tests experiments
+- Line length: 88 (black default)
+- Quotes: double (`"`)
+- Formatting: [black](https://black.readthedocs.io) + [isort](https://pycqa.github.io/isort/)
+- Type hints: required on all public signatures; `mypy --strict`
+- Docstrings: Google-style with **what** and **why**
+- Numerical conventions documented in [`docs/math.md`](docs/math.md)
+
+### Commit Conventions
+
+We use [Conventional Commits](https://www.conventionalcommits.org/):
+
 ```
+feat: add multi-class CCE Hessian extraction
+fix: handle zero-divisor in Charbonnier loss with hypot
+docs: document Proposition 5.1 scaling
+refactor: split boosting.py into per-engine modules
+test: add Lemma 4.2 identity parity tests
+chore: update pre-commit hooks
+```
+
+---
+
+## Mathematical Guarantees
+
+This codebase is a **byte-faithful** reproduction of the paper's formulas
+(verified in [`docs/fidelity.md`](docs/fidelity.md)):
+
+1. **Closed-form leaf weight** — `w = -Σg / (Σh + λ)` (Algorithm 1 line 4).
+2. **Exact Newton gain** — `½[ (G_L)²/(H_L+λ) + (G_R)²/(H_R+λ) - (G)²/(H+λ) ]`
+   used for greedy split selection.
+3. **Adaptive ``λ_k`` (Proposition 5.1)** —
+   ``λ_k = λ_base + sqrt(M · ||g_k||)`` with ``M = M_0 · √N``.
+4. **Lemma 4.2 identities** — Both ``λ ||f|| ≤ ||g||`` and
+   ``||f||²_K = -⟨g, f⟩`` are numerically checked by
+   `verify_lemma_4_2`.
+5. **Analytic Hessian Lipschitz constants** — ``M_0 ∈ {0, 1/4, 1}``
+   for the four losses (Appendix A).
+6. **Multi-class block Hessian** — ``diag(p) - p p^T`` per sample,
+   extracted to diagonals for the K-class tree builder.
+
+### Documentation
+
+| Document | Description |
+|----------|-------------|
+| [Mathematical Foundations](docs/math.md) | Restated problem, loss formulas, tree equations, convergence theorems. |
+| [Architecture](docs/architecture.md) | Module responsibilities, data flow, design decisions, extension points. |
+| [API Reference](docs/api.md) | Complete reference for every public class and function. |
+| [Experiments](docs/experiments.md) | Expected behavior, analysis, reproducibility notes. |
+| [Fidelity Report](docs/fidelity.md) | Section-by-section fidelity report against the paper. |
+
+---
 
 ## Tech Stack
 
-- **Language:** Python 3.9+
-- **Core Dependency:** NumPy
-- **Build System:** setuptools (PEP 621)
-- **Testing:** pytest, pytest-cov
-- **Linting:** black, isort
-- **Type Checking:** mypy (strict mode)
-- **CI:** GitHub Actions (lint, type-check, tests, coverage)
-- **Pre-commit:** pre-commit hooks for code quality
+| Category        | Technology                                   |
+|-----------------|----------------------------------------------|
+| Language        | Python 3.9+                                  |
+| Numerical       | [NumPy](https://numpy.org/) ≥ 1.21           |
+| Datasets (opt.) | [scikit-learn](https://scikit-learn.org/) ≥ 1.0 |
+| Plotting (opt.) | [matplotlib](https://matplotlib.org/) ≥ 3.4  |
+| Lint/Format     | [black](https://black.readthedocs.io/) + [isort](https://pycqa.github.io/isort/) |
+| Type Check      | [mypy](https://mypy-lang.org/) (strict)        |
+| Testing         | [pytest](https://docs.pytest.org/) + pytest-cov |
+| Build           | setuptools (PEP 621)                         |
+| Pre-commit      | [pre-commit](https://pre-commit.com) hooks    |
+
+---
 
 ## Roadmap
 
-- [x] Multi-output / multi-class tree support
-- [ ] Column subsampling
-- [ ] Row subsampling
-- [ ] Early stopping
-- [ ] Warm-start support
-- [ ] Parallel tree construction
-- [ ] Additional loss functions
-- [ ] Scikit-learn compatible API
-- [ ] PyPI publishing via automated releases
+See [ROADMAP.md](ROADMAP.md) for planned features and milestones.
 
-## Fidelity Notes
+- **v0.1.0** — Current release: paper-faithful reproduction, 126 tests,
+  three experiment scripts, full docs.
+- **v0.2.0** — Column subsampling, row subsampling, early stopping,
+  warm-start support.
+- **v0.3.0** — Parallel tree construction, additional loss functions.
+- **v1.0.0** — Stable API, scikit-learn-compatible API, PyPI release
+  automation, GPU optional backends.
 
-See [docs/fidelity.md](docs/fidelity.md) for a section-by-section comparison against the paper.
-
-Key points:
-- **Exact implementations:** leaf weight formula, split gain, adaptive λ_k, gradient/Hessian derivations (Appendix A), Proposition 5.1 scaling, exact Newton direction, Θ_k, γ_k, Lemma 4.2 checks
-- **Assumed / unspecified:** λ_base values (we use 0 for vanilla, 1e-3 for Higgs GRN), min_samples_leaf (default 1), exact Higgs subset size (10k diagnostics)
-- **Extensions (not part of paper):** histogram-based split finding in `extensions/`, optional plotting, early-stopping helpers
+---
 
 ## Contributing
 
-Contributions are welcome! Please read our [Contributing Guide](CONTRIBUTING.md) for details on:
+We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for:
 
-- Fork and branch workflow
-- Commit conventions
-- Pull request process
-- Coding standards
-- Testing requirements
+- Development setup (PEP 621, black, isort, mypy, pytest)
+- Pull request process and review checklist
+- Coding standards and paper-fidelity expectations
+- Test expectations (≥ 90% coverage on new code)
 
 ## Code of Conduct
 
-This project follows the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.md).
+This project follows the [Contributor Covenant v2.1](CODE_OF_CONDUCT.md).
+By participating you agree to abide by its terms.
 
 ## Security
 
-For reporting security vulnerabilities, please see our [Security Policy](SECURITY.md).
-
-## License
-
-This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
-
-**Note:** This is reproduction code only; the paper contents remain property of the original authors.
+Report vulnerabilities to **sachncs@gmail.com** — see [SECURITY.md](SECURITY.md).
 
 ## Citation
 
@@ -305,9 +405,16 @@ If you use this software in your research, please cite:
 
 ```bibtex
 @article{zozoulenko2026grnbt,
-  title={Gradient Regularized Newton Boosting Trees with Global Convergence},
-  author={Zozoulenko, Nikita and Falkowski, Daniel and Cass, Thomas and Gonon, Lucien},
-  journal={arXiv preprint arXiv:2605.00581v1},
-  year={2026}
+  title  = {Gradient Regularized Newton Boosting Trees with Global Convergence},
+  author = {Zozoulenko, Nikita and Falkowski, Daniel and Cass, Thomas and Gonon, Lucien},
+  journal = {arXiv preprint arXiv:2605.00581v1},
+  year   = {2026}
 }
 ```
+
+## License
+
+[MIT](LICENSE) © 2026 Sachin.
+
+**Note:** This is reproduction code only; the paper contents remain
+property of the original authors.
