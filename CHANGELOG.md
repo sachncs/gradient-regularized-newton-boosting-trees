@@ -35,6 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 |--------|------------------|---------|
 | `c8e657a` | 2026-07-12 14:11:03 +0530 | docs: add usage examples, docstrings, and improve cross-references |
 | `c4bcb9f` | 2026-07-12 14:11:14 +0530 | refactor: promote semi-private helpers to public API |
+| `601f740` | 2026-07-12 14:11:57 +0530 | docs: update CHANGELOG.md with atomic commits for this release |
 
 ## [0.1.0] - 2026-05-06
 
