@@ -81,7 +81,6 @@ ensure_newline_before_comments = true
 known_first_party = ["grnbt"]
 
 [tool.mypy]
-python_version = "3.10"
 warn_return_any = false
 warn_unused_configs = true
 disallow_untyped_defs = true
