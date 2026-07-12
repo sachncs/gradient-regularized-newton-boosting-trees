@@ -202,7 +202,7 @@ chore: update numpy minimum version to 1.24
 
 - Follow PEP 8 (enforced by black with 88-character line length)
 - Use type hints for all public functions (enforced by mypy strict mode)
-- Write docstrings for public APIs (NumPy style)
+- Write docstrings for public APIs (Google style)
 - Keep functions focused and reasonably sized
 
 ### Imports
@@ -259,7 +259,7 @@ pytest tests/ -v --cov=grnbt
 
 - Update `docs/api.md` for new public APIs
 - Add docstrings to all public functions and classes
-- Use NumPy-style docstrings
+- Use Google-style docstrings
 - Update README.md if adding new features or changing setup instructions
 - Include examples in docstrings where helpful
 
@@ -272,28 +272,20 @@ def function_name(param1: int, param2: str = "default") -> bool:
     Longer description if needed, explaining the purpose
     and behavior in more detail.
 
-    Parameters
-    ----------
-    param1 : int
-        Description of param1.
-    param2 : str, optional
-        Description of param2. Default is "default".
+    Args:
+        param1: Description of param1.
+        param2: Description of param2. Default is "default".
 
-    Returns
-    -------
-    bool
+    Returns:
         Description of return value.
 
-    Raises
-    ------
-    ValueError
-        If param1 is negative.
+    Raises:
+        ValueError: If param1 is negative.
 
-    Examples
-    --------
-    >>> result = function_name(42, "hello")
-    >>> print(result)
-    True
+    Examples:
+        >>> result = function_name(42, "hello")
+        >>> print(result)
+        True
     """
 ```
 

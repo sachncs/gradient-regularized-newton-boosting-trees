@@ -3,15 +3,17 @@
 Verifies the *exact* values of the empirical-Hilbert-space quantities
 introduced in the paper:
 
-* :func:`exact_newton_direction` returns ``-g / (h + λ)`` and
-  gracefully handles zero Hessians (via ``1e-12`` epsilon).
-* :func:`cosine_angle_theta` returns ``1`` for aligned vectors,
-  ``0`` for ``H``-orthogonal vectors, ``-1`` for antiparallel
-  vectors, and the safe ``1`` default for zero directions.
-* :func:`weak_gradient_edge_gamma` recovers ``γ = 1`` when the
-  weak step equals the exact Newton step.
-* :func:`verify_lemma_4_2` confirms both identities of Lemma 4.2
-  for the regularized exact Newton direction.
+* :func:`~grnbt.diagnostics.exact_newton_direction` returns
+  ``-g / (h + λ)`` and gracefully handles zero Hessians (via
+  ``1e-12`` epsilon).
+* :func:`~grnbt.diagnostics.cosine_angle_theta` returns ``1`` for
+  aligned vectors, ``0`` for ``H``-orthogonal vectors, ``-1`` for
+  antiparallel vectors, and the safe ``1`` default for zero
+  directions.
+* :func:`~grnbt.diagnostics.weak_gradient_edge_gamma` recovers
+  ``γ = 1`` when the weak step equals the exact Newton step.
+* :func:`~grnbt.diagnostics.verify_lemma_4_2` confirms both
+  identities of Lemma 4.2 for the regularized exact Newton direction.
 
 All tests also exercise input validation (shape, emptiness,
 negativity of ``λ``, ``NaN``/``Inf``).

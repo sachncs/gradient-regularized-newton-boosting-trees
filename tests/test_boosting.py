@@ -1,12 +1,13 @@
 """Tests for the scalar-output boosting engines.
 
-Covers :class:`VanillaNewtonBoosting` and
-:class:`GradientRegularizedNewtonBoosting` for:
+Covers :class:`~grnbt.boosting.VanillaNewtonBoosting` and
+:class:`~grnbt.boosting.GradientRegularizedNewtonBoosting` for:
 
 * basic fit/predict shape correctness;
 * the core paper claim that GRN actually uses an adaptive ``λ_k``
   that grows with ``||g_k||``;
-* loss-decrease invariant for strongly convex losses (MSE);
+* loss-decrease invariant for strongly convex losses
+  (:class:`~grnbt.losses.MSELoss`);
 * hyperparameter validation (negative ``learning_rate``, zero
   ``n_estimators``, etc.);
 * defensive validation of inputs (empty data, zero features, ``NaN``);
@@ -38,7 +39,12 @@ def test_vanilla_newton_runs(synthetic_regression):
 
 
 def test_grn_adaptive_lambda_increases(synthetic_regression):
-    """GRN must record adaptive λ_k > 0 for Charbonnier loss."""
+    """GRN must record adaptive λ_k > 0 for Charbonnier loss.
+
+    Because ``CharbonnierLoss.M_0 = 1 > 0``, the adaptive term
+    ``sqrt(M * ||g||)`` is strictly positive whenever the gradient is
+    nonzero, confirming that GRN uses prediction-dependent regularization.
+    """
     x, y = synthetic_regression
     model = GradientRegularizedNewtonBoosting(
         loss=CharbonnierLoss(),
@@ -54,7 +60,12 @@ def test_grn_adaptive_lambda_increases(synthetic_regression):
 
 
 def test_loss_decreases_for_strongly_convex(synthetic_regression):
-    """MSE is strongly convex; vanilla Newton with small η should decrease loss."""
+    """MSE is strongly convex; vanilla Newton with small η should decrease loss.
+
+    MSE has constant Hessian (``M_0 = 0``), so the Newton step is exact
+    and the loss must decrease monotonically. This is the baseline
+    sanity check for any Newton boosting implementation.
+    """
     x, y = synthetic_regression
     model = VanillaNewtonBoosting(
         loss=MSELoss(),

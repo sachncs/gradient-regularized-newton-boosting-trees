@@ -1,11 +1,12 @@
 """Tests for optional extensions (not part of the paper baseline).
 
-These tests cover :class:`grnbt.extensions.histogram_tree.HistogramNewtonTree`:
+These tests cover
+:class:`~grnbt.extensions.histogram_tree.HistogramNewtonTree`:
 
 * it must fit and predict with arbitrary ``n_bins`` (including the
   trivial ``n_bins == 1`` case which produces a single leaf);
 * its predictions must be positively correlated with those of the
-  exact :class:`grnbt.tree.NewtonTree` (not identical because the
+  exact :class:`~grnbt.tree.NewtonTree` (not identical because the
   threshold candidates are different);
 * invalid ``n_bins`` values are rejected.
 
@@ -34,7 +35,13 @@ def test_histogram_tree_runs():
 
 
 def test_histogram_tree_approximates_exact():
-    """Histogram tree predictions should be close to exact tree on coarse data."""
+    """Histogram tree predictions should be close to exact tree on coarse data.
+
+    The correlation is positive but not perfect because histogram
+    binning approximates the exact threshold search. With sufficient
+    bins (``n_bins >= n_samples``), the histogram tree converges to
+    the exact tree.
+    """
     rng = np.random.RandomState(4)
     n, d = 32, 2
     x = rng.randn(n, d)

@@ -1,9 +1,9 @@
 """Tests for the multi-class boosting engine.
 
-Covers :class:`MultiClassNewtonBoosting` for:
+Covers :class:`~grnbt.boosting.MultiClassNewtonBoosting` for:
 
 * fit/predict shape correctness;
-* probability simplex constraint (rows of softmax output sum to 1);
+* probability softmax constraint (rows of output sum to 1);
 * ``softmax_output=False`` (logits) mode;
 * loss-decrease invariant;
 * adaptive ``λ_k`` from the GRN-style update;
@@ -75,7 +75,12 @@ def test_multiclass_boosting_logits_output(synthetic_multiclass):
 
 
 def test_multiclass_boosting_loss_decreases(synthetic_multiclass):
-    """Loss should decrease over boosting rounds."""
+    """Loss should decrease over boosting rounds.
+
+    CCE is strictly convex; each Newton step with positive gain reduces
+    the empirical risk. The loss must decrease monotonically for a
+    correctly implemented Newton boosting engine.
+    """
     x, y, n_classes = synthetic_multiclass
     loss = CategoricalCrossEntropyLoss(n_classes=n_classes)
     model = MultiClassNewtonBoosting(
@@ -93,7 +98,12 @@ def test_multiclass_boosting_loss_decreases(synthetic_multiclass):
 
 
 def test_multiclass_boosting_adaptive_lambda(synthetic_multiclass):
-    """GRN variant must record adaptive lambda > 0."""
+    """GRN variant must record adaptive lambda > 0.
+
+    CCE has ``M_0 = 1/4 > 0``, so the GRN adaptive term
+    ``sqrt(M * ||g||)`` is strictly positive during training, confirming
+    that the multi-class engine uses prediction-dependent regularization.
+    """
     x, y, n_classes = synthetic_multiclass
     loss = CategoricalCrossEntropyLoss(n_classes=n_classes)
     model = MultiClassNewtonBoosting(

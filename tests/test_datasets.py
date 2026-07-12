@@ -5,7 +5,7 @@ Two cases are covered per loader:
 * shape, finiteness, and (for wine) standardization — these always
   run in offline mode by relying on the synthetic fallback for
   Higgs and a (typically cached) network fetch for wine.
-* input validation — :func:`grnbt.datasets.load_higgs_subset`
+* input validation — :func:`~grnbt.datasets.load_higgs_subset`
   rejects non-positive ``n_samples``.
 
 These tests do not assert exact row counts because the underlying
