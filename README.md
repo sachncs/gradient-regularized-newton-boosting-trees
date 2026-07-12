@@ -113,7 +113,7 @@ model = GradientRegularizedNewtonBoosting(
     n_estimators=100,
     learning_rate=1.0,
     max_depth=4,
-    lambda_base=1e-3,
+    lam_base=1e-3,
 )
 model.fit(X, y)
 preds = model.predict(X)
@@ -135,7 +135,7 @@ model = MultiClassNewtonBoosting(
     n_estimators=100,
     learning_rate=0.1,
     max_depth=3,
-    lambda_base=1e-3,
+    lam_base=1e-3,
     n_classes=3,
 )
 model.fit(X, y)
@@ -155,7 +155,7 @@ from grnbt.diagnostics import (
 
 # Build a small ensemble and inspect Θ_k, γ_k per iteration.
 model = GradientRegularizedNewtonBoosting(
-    loss=CharbonnierLoss(), n_estimators=20, max_depth=3, lambda_base=0.0,
+    loss=CharbonnierLoss(), n_estimators=20, max_depth=3, lam_base=0.0,
 )
 model.fit(X, y)
 
@@ -185,7 +185,7 @@ for k, tree in enumerate(model.trees):
 | `learning_rate`   | `1.0`    | Step size ``η`` (paper default). |
 | `max_depth`       | `3`      | Maximum tree depth (root depth `0`). |
 | `min_samples_leaf`| `1`      | Minimum samples per leaf. |
-| `lambda_base`     | `0.0`    | Static ``λ_base`` regularization component. |
+| `lam_base`        | `0.0`    | Static ``λ_base`` regularization component. |
 | `verbose`         | `False`  | Print metrics every 10 iterations. |
 
 ### Adaptive Regularization (GRN only)
@@ -304,6 +304,7 @@ isort --check-only grnbt tests experiments \
 - Formatting: [black](https://black.readthedocs.io) + [isort](https://pycqa.github.io/isort/)
 - Type hints: required on all public signatures; `mypy --strict`
 - Docstrings: Google-style with **what** and **why**
+- No semi-private naming (`_foo`) — all identifiers are public
 - Numerical conventions documented in [`docs/math.md`](docs/math.md)
 
 ### Commit Conventions
