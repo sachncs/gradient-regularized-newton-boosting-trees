@@ -52,7 +52,7 @@ from abc import ABC, abstractmethod
 import numpy as np
 
 
-def _validate_inputs(y_true: np.ndarray, y_pred: np.ndarray) -> None:
+def validate_inputs(y_true: np.ndarray, y_pred: np.ndarray) -> None:
     """Validate common scalar-output loss inputs.
 
     The MSE/Charbonnier/BCE losses share the same shape, type, and finiteness
@@ -220,6 +220,18 @@ class MSELoss(Loss):
 
     Attributes:
         None (stateless).
+
+    Examples:
+        >>> import numpy as np
+        >>> loss = MSELoss()
+        >>> y = np.array([1.0, 2.0, 3.0])
+        >>> y_pred = np.array([1.0, 2.0, 3.0])
+        >>> loss.loss(y, y_pred)
+        0.0
+        >>> loss.gradient(y, y_pred)
+        array([0., 0., 0.])
+        >>> loss.hessian_lipschitz_constant()
+        0.0
     """
 
     def loss(self, y_true: np.ndarray, y_pred: np.ndarray) -> float:
@@ -239,7 +251,7 @@ class MSELoss(Loss):
                 wrong dtype.
             ValueError: On shape mismatch, empty arrays, or non-finite values.
         """
-        _validate_inputs(y_true, y_pred)
+        validate_inputs(y_true, y_pred)
         return float(np.mean((y_true - y_pred) ** 2))
 
     def gradient(self, y_true: np.ndarray, y_pred: np.ndarray) -> np.ndarray:
@@ -257,7 +269,7 @@ class MSELoss(Loss):
                 wrong dtype.
             ValueError: On shape mismatch, empty arrays, or non-finite values.
         """
-        _validate_inputs(y_true, y_pred)
+        validate_inputs(y_true, y_pred)
         return np.asarray(2.0 * (y_pred - y_true) / y_true.shape[0], dtype=float)
 
     def hessian(self, y_true: np.ndarray, y_pred: np.ndarray) -> np.ndarray:
@@ -278,7 +290,7 @@ class MSELoss(Loss):
                 wrong dtype.
             ValueError: On shape mismatch, empty arrays, or non-finite values.
         """
-        _validate_inputs(y_true, y_pred)
+        validate_inputs(y_true, y_pred)
         return np.asarray(np.full_like(y_true, 2.0 / y_true.shape[0]), dtype=float)
 
     def hessian_lipschitz_constant(self) -> float:
@@ -327,7 +339,7 @@ class CharbonnierLoss(Loss):
                 wrong dtype.
             ValueError: On shape mismatch, empty arrays, or non-finite values.
         """
-        _validate_inputs(y_true, y_pred)
+        validate_inputs(y_true, y_pred)
         d = y_pred - y_true
         return float(np.mean(np.hypot(1.0, d) - 1.0))
 
@@ -349,7 +361,7 @@ class CharbonnierLoss(Loss):
                 wrong dtype.
             ValueError: On shape mismatch, empty arrays, or non-finite values.
         """
-        _validate_inputs(y_true, y_pred)
+        validate_inputs(y_true, y_pred)
         d = y_pred - y_true
         denom = np.hypot(1.0, d) * y_true.shape[0]
         return np.asarray(d / denom, dtype=float)
@@ -374,7 +386,7 @@ class CharbonnierLoss(Loss):
                 wrong dtype.
             ValueError: On shape mismatch, empty arrays, or non-finite values.
         """
-        _validate_inputs(y_true, y_pred)
+        validate_inputs(y_true, y_pred)
         d = y_pred - y_true
         hypot_d = np.hypot(1.0, d)
         return np.asarray(1.0 / (hypot_d**3 * y_true.shape[0]), dtype=float)
@@ -425,7 +437,7 @@ class BinaryCrossEntropyLoss(Loss):
             ValueError: For shape mismatch, empty arrays, non-finite values,
                 or non-binary labels.
         """
-        _validate_inputs(y_true, y_pred)
+        validate_inputs(y_true, y_pred)
         if not np.all(np.isin(y_true, [0, 1])):
             raise ValueError("y_true for BCE must contain only 0 and 1.")
         p = 1.0 / (1.0 + np.exp(-y_pred))
@@ -453,7 +465,7 @@ class BinaryCrossEntropyLoss(Loss):
             ValueError: For shape mismatch, empty arrays, non-finite values,
                 or non-binary labels.
         """
-        _validate_inputs(y_true, y_pred)
+        validate_inputs(y_true, y_pred)
         if not np.all(np.isin(y_true, [0, 1])):
             raise ValueError("y_true for BCE must contain only 0 and 1.")
         p = 1.0 / (1.0 + np.exp(-y_pred))
@@ -477,7 +489,7 @@ class BinaryCrossEntropyLoss(Loss):
             ValueError: For shape mismatch, empty arrays, non-finite values,
                 or non-binary labels.
         """
-        _validate_inputs(y_true, y_pred)
+        validate_inputs(y_true, y_pred)
         if not np.all(np.isin(y_true, [0, 1])):
             raise ValueError("y_true for BCE must contain only 0 and 1.")
         p = 1.0 / (1.0 + np.exp(-y_pred))
@@ -530,7 +542,7 @@ class CategoricalCrossEntropyLoss(Loss):
             raise ValueError(f"n_classes must be an integer >= 2, got {n_classes}")
         self.n_classes = n_classes
 
-    def _softmax(self, z: np.ndarray) -> np.ndarray:
+    def softmax(self, z: np.ndarray) -> np.ndarray:
         """Numerically stable row-wise softmax.
 
         Subtracts the per-row maximum before exponentiation. This shift
@@ -564,6 +576,8 @@ class CategoricalCrossEntropyLoss(Loss):
             ValueError: For shape/rank mismatch, empty arrays, non-finite
                 values, or labels outside ``[0, K-1]``.
         """
+        # CCE validation is inlined (not via validate_inputs) because it
+        # enforces stricter constraints: integer labels, fixed K, 2-D shape.
         if not isinstance(y_true, np.ndarray):
             raise TypeError(
                 f"y_true must be a numpy.ndarray, got {type(y_true).__name__}"
@@ -596,7 +610,7 @@ class CategoricalCrossEntropyLoss(Loss):
                 f"[{y_true.min()}, {y_true.max()}]"
             )
 
-        p = self._softmax(y_pred)
+        p = self.softmax(y_pred)
         n = y_true.shape[0]
         log_p = np.log(p + 1e-15)
         return -float(np.sum(log_p[np.arange(n), y_true]) / n)
@@ -619,6 +633,8 @@ class CategoricalCrossEntropyLoss(Loss):
             ValueError: For rank/shape mismatch, empty arrays, non-finite
                 values, or labels outside ``[0, K-1]``.
         """
+        # CCE validation is inlined (not via validate_inputs) because it
+        # enforces stricter constraints: integer labels, fixed K, 2-D shape.
         if not isinstance(y_true, np.ndarray):
             raise TypeError(
                 f"y_true must be a numpy.ndarray, got {type(y_true).__name__}"
@@ -651,7 +667,7 @@ class CategoricalCrossEntropyLoss(Loss):
                 f"[{y_true.min()}, {y_true.max()}]"
             )
 
-        p = self._softmax(y_pred)
+        p = self.softmax(y_pred)
         n = y_true.shape[0]
         grad = p.copy()
         grad[np.arange(n), y_true] -= 1.0
@@ -679,6 +695,8 @@ class CategoricalCrossEntropyLoss(Loss):
             ValueError: For rank/shape mismatch, empty arrays, non-finite
                 values, or labels outside ``[0, K-1]``.
         """
+        # CCE validation is inlined (not via validate_inputs) because it
+        # enforces stricter constraints: integer labels, fixed K, 2-D shape.
         if not isinstance(y_true, np.ndarray):
             raise TypeError(
                 f"y_true must be a numpy.ndarray, got {type(y_true).__name__}"
@@ -711,7 +729,7 @@ class CategoricalCrossEntropyLoss(Loss):
                 f"[{y_true.min()}, {y_true.max()}]"
             )
 
-        p = self._softmax(y_pred)
+        p = self.softmax(y_pred)
         n = y_true.shape[0]
         k = self.n_classes
         hess = np.zeros((n, k, k))

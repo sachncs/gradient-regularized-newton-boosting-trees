@@ -64,6 +64,7 @@ from grnbt.datasets import load_higgs_subset, load_wine_quality
 from grnbt.diagnostics import (
     cosine_angle_theta,
     exact_newton_direction,
+    validate_diagonal_inputs,
     verify_lemma_4_2,
     weak_gradient_edge_gamma,
 )
@@ -72,8 +73,9 @@ from grnbt.losses import (
     CategoricalCrossEntropyLoss,
     CharbonnierLoss,
     MSELoss,
+    validate_inputs,
 )
-from grnbt.tree import MultiClassNewtonTree, NewtonTree
+from grnbt.tree import MultiClassNewtonTree, MultiClassNode, NewtonTree, Node
 
 __all__ = [
     # Losses.
@@ -81,9 +83,12 @@ __all__ = [
     "CharbonnierLoss",
     "BinaryCrossEntropyLoss",
     "CategoricalCrossEntropyLoss",
+    "validate_inputs",
     # Weak learners.
     "NewtonTree",
     "MultiClassNewtonTree",
+    "Node",
+    "MultiClassNode",
     # Boosting engines.
     "VanillaNewtonBoosting",
     "GradientRegularizedNewtonBoosting",
@@ -93,6 +98,7 @@ __all__ = [
     "cosine_angle_theta",
     "weak_gradient_edge_gamma",
     "verify_lemma_4_2",
+    "validate_diagonal_inputs",
     # Datasets.
     "load_wine_quality",
     "load_higgs_subset",

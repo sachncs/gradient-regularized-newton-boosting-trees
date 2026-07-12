@@ -45,7 +45,7 @@ grnbt/
 **Responsibility:** Build a single decision tree that minimizes the second-order surrogate.
 
 **Design:**
-- `_Node` is a private recursive node class.
+- `Node` is a recursive node class used internally by the tree builders.
 - `NewtonTree.fit()` performs exhaustive greedy split search over all features and thresholds.
 - `NewtonTree.predict()` traverses the tree for each sample.
 - Split gain and leaf weight formulas match the paper exactly.
@@ -62,7 +62,7 @@ grnbt/
 
 **Design:**
 - `BaseBoosting` contains the shared training loop and prediction logic.
-- `VanillaNewtonBoosting` overrides only `_compute_lambda` to return a static value.
+- `VanillaNewtonBoosting` overrides only `compute_lambda` to return a static value.
 - `GradientRegularizedNewtonBoosting` computes the adaptive `λ_k` from the current gradient norm.
 - History logging is automatic and includes `loss`, `lambda_k`, and `grad_norm`.
 

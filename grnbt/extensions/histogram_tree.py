@@ -21,13 +21,13 @@ from typing import Optional
 
 import numpy as np
 
-from grnbt.tree import NewtonTree, _Node
+from grnbt.tree import NewtonTree, Node
 
 
 class HistogramNewtonTree(NewtonTree):
     """Histogram-binned variant of :class:`NewtonTree`.
 
-    Subclasses :class:`NewtonTree` and overrides :meth:`_build` to use
+    Subclasses :class:`NewtonTree` and overrides :meth:`build` to use
     histogram bin boundaries as candidate split points. Prediction,
     leaf weight formulas, gain expressions, and the ``min_gain`` /
     ``min_samples_leaf`` semantics are inherited unchanged.
@@ -70,17 +70,17 @@ class HistogramNewtonTree(NewtonTree):
             raise ValueError(f"n_bins must be a positive integer, got {n_bins}")
         self.n_bins = n_bins
 
-    def _build(
+    def build(
         self,
         x: np.ndarray,
         g: np.ndarray,
         h: np.ndarray,
         lam: float,
         depth: int,
-    ) -> _Node:
+    ) -> Node:
         """Recursively build the tree using histogram splits.
 
-        The algorithm mirrors :meth:`NewtonTree._build` but replaces
+        The algorithm mirrors :meth:`NewtonTree.build` but replaces
         the sort-based threshold loop with a ``np.digitize`` binning
         step: each sample is assigned a bin index in ``[0, n_bins-1]``
         and splits are evaluated only at the ``n_bins - 1`` bin
@@ -90,7 +90,7 @@ class HistogramNewtonTree(NewtonTree):
             * O(N) for ``digitize`` plus ``O(B)`` threshold evaluation,
               where ``B = n_bins``.
         """
-        node = _Node(is_leaf=True)
+        node = Node(is_leaf=True)
         # Closed-form leaf weight is unchanged from the exact builder.
         node.weight = -np.sum(g) / (np.sum(h) + lam + 1e-12)
 
@@ -153,14 +153,14 @@ class HistogramNewtonTree(NewtonTree):
         node.is_leaf = False
         node.feature_idx = best_feat
         node.threshold = best_thresh
-        node.left = self._build(
+        node.left = self.build(
             x[best_left_idx],
             g[best_left_idx],
             h[best_left_idx],
             lam,
             depth + 1,
         )
-        node.right = self._build(
+        node.right = self.build(
             x[best_right_idx],
             g[best_right_idx],
             h[best_right_idx],

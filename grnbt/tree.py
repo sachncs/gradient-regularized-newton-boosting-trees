@@ -72,11 +72,11 @@ from typing import Optional
 import numpy as np
 
 
-class _Node:
+class Node:
     """Recursive scalar-output tree node.
 
-    ``_Node`` is the minimal mutable record used by :class:`NewtonTree`.
-    It is intentionally kept private (no public API exposure) because the
+    ``Node`` is the minimal mutable record used by :class:`NewtonTree`.
+    It is intentionally kept as an internal data structure because the
     tree itself is the public interface; consumers should use
     :meth:`NewtonTree.predict` rather than walking nodes directly.
 
@@ -93,12 +93,18 @@ class _Node:
     """
 
     def __init__(self, is_leaf: bool = True) -> None:
+        """Initialize a tree node.
+
+        Args:
+            is_leaf: ``True`` for terminal (leaf) nodes, ``False`` for
+                internal split nodes. Defaults to ``True``.
+        """
         self.is_leaf = is_leaf
         self.weight: float = 0.0
         self.feature_idx: Optional[int] = None
         self.threshold: Optional[float] = None
-        self.left: Optional["_Node"] = None
-        self.right: Optional["_Node"] = None
+        self.left: Optional["Node"] = None
+        self.right: Optional["Node"] = None
 
 
 class NewtonTree:
@@ -158,7 +164,7 @@ class NewtonTree:
         self.max_depth = max_depth
         self.min_samples_leaf = min_samples_leaf
         self.min_gain = min_gain
-        self.root: Optional[_Node] = None
+        self.root: Optional[Node] = None
 
     def fit(
         self,
@@ -192,8 +198,8 @@ class NewtonTree:
             ValueError: If shapes mismatch, the data is empty, ``lam``
                 is negative, or any input contains ``NaN``/``Inf``.
         """
-        self._validate_fit_inputs(x, g, h, lam)
-        self.root = self._build(x, g, h, lam, depth=0)
+        self.validate_fit_inputs(x, g, h, lam)
+        self.root = self.build(x, g, h, lam, depth=0)
         return self
 
     def predict(self, x: np.ndarray) -> np.ndarray:
@@ -226,10 +232,10 @@ class NewtonTree:
         out: np.ndarray = np.empty(x.shape[0])
         assert self.root is not None
         for i in range(x.shape[0]):
-            out[i] = self._predict_one(self.root, x[i])
+            out[i] = self.predict_one(self.root, x[i])
         return out
 
-    def _predict_one(self, node: _Node, sample: np.ndarray) -> float:
+    def predict_one(self, node: Node, sample: np.ndarray) -> float:
         """Traverse the tree for a single sample.
 
         Recursive descent following the threshold test; ``<=``
@@ -242,17 +248,17 @@ class NewtonTree:
         assert node.left is not None
         assert node.right is not None
         if sample[node.feature_idx] <= node.threshold:
-            return self._predict_one(node.left, sample)
-        return self._predict_one(node.right, sample)
+            return self.predict_one(node.left, sample)
+        return self.predict_one(node.right, sample)
 
-    def _build(
+    def build(
         self,
         x: np.ndarray,
         g: np.ndarray,
         h: np.ndarray,
         lam: float,
         depth: int,
-    ) -> _Node:
+    ) -> Node:
         """Recursively build the tree via exhaustive greedy search.
 
         Algorithm (per recursive call):
@@ -269,7 +275,7 @@ class NewtonTree:
         The returned node is fully self-contained (its ``left`` and
         ``right`` children own their own sub-arrays).
         """
-        node = _Node(is_leaf=True)
+        node = Node(is_leaf=True)
         sum_h: float = float(np.sum(h))
         # Closed-form leaf weight. The epsilon guards division-by-zero when
         # both Σh and λ are numerically zero (rare but possible with
@@ -344,14 +350,14 @@ class NewtonTree:
         node.is_leaf = False
         node.feature_idx = best_feat
         node.threshold = best_thresh
-        node.left = self._build(
+        node.left = self.build(
             x[best_left_idx],
             g[best_left_idx],
             h[best_left_idx],
             lam,
             depth + 1,
         )
-        node.right = self._build(
+        node.right = self.build(
             x[best_right_idx],
             g[best_right_idx],
             h[best_right_idx],
@@ -360,7 +366,7 @@ class NewtonTree:
         )
         return node
 
-    def _validate_fit_inputs(
+    def validate_fit_inputs(
         self,
         x: np.ndarray,
         g: np.ndarray,
@@ -402,10 +408,10 @@ class NewtonTree:
             raise ValueError("Inputs contain infinite values.")
 
 
-class _MultiClassNode:
+class MultiClassNode:
     """Recursive multi-class tree node used by :class:`MultiClassNewtonTree`.
 
-    Mirrors :class:`_Node` but stores a vector leaf weight of shape
+    Mirrors :class:`Node` but stores a vector leaf weight of shape
     ``(K,)`` so that all classes share the same split structure. The
     multi-class ensemble ``F`` is therefore a stack of ``K`` real-valued
     functions, all derived from a single greedy tree.
@@ -421,12 +427,18 @@ class _MultiClassNode:
     """
 
     def __init__(self, is_leaf: bool = True) -> None:
+        """Initialize a multi-class tree node.
+
+        Args:
+            is_leaf: ``True`` for terminal (leaf) nodes, ``False`` for
+                internal split nodes. Defaults to ``True``.
+        """
         self.is_leaf = is_leaf
         self.weight: Optional[np.ndarray] = None
         self.feature_idx: Optional[int] = None
         self.threshold: Optional[float] = None
-        self.left: Optional["_MultiClassNode"] = None
-        self.right: Optional["_MultiClassNode"] = None
+        self.left: Optional["MultiClassNode"] = None
+        self.right: Optional["MultiClassNode"] = None
 
 
 class MultiClassNewtonTree:
@@ -491,7 +503,7 @@ class MultiClassNewtonTree:
         self.max_depth = max_depth
         self.min_samples_leaf = min_samples_leaf
         self.min_gain = min_gain
-        self.root: Optional[_MultiClassNode] = None
+        self.root: Optional[MultiClassNode] = None
 
     def fit(
         self,
@@ -519,8 +531,8 @@ class MultiClassNewtonTree:
             ValueError: If shapes mismatch, the data is empty, ``lam``
                 is negative, or any input contains ``NaN`` / ``Inf``.
         """
-        self._validate_fit_inputs(x, g, h, lam)
-        self.root = self._build(x, g, h, lam, depth=0)
+        self.validate_fit_inputs(x, g, h, lam)
+        self.root = self.build(x, g, h, lam, depth=0)
         return self
 
     def predict(self, x: np.ndarray) -> np.ndarray:
@@ -550,10 +562,10 @@ class MultiClassNewtonTree:
         out = np.empty((x.shape[0], self.n_classes))
         assert self.root is not None
         for i in range(x.shape[0]):
-            out[i] = self._predict_one(self.root, x[i])
+            out[i] = self.predict_one(self.root, x[i])
         return out
 
-    def _predict_one(self, node: _MultiClassNode, sample: np.ndarray) -> np.ndarray:
+    def predict_one(self, node: MultiClassNode, sample: np.ndarray) -> np.ndarray:
         """Traverse tree for a single sample, returning the K-dim weight vector."""
         if node.is_leaf:
             assert node.weight is not None
@@ -561,20 +573,20 @@ class MultiClassNewtonTree:
         assert node.left is not None
         assert node.right is not None
         if sample[node.feature_idx] <= node.threshold:
-            return self._predict_one(node.left, sample)
-        return self._predict_one(node.right, sample)
+            return self.predict_one(node.left, sample)
+        return self.predict_one(node.right, sample)
 
-    def _build(
+    def build(
         self,
         x: np.ndarray,
         g: np.ndarray,
         h: np.ndarray,
         lam: float,
         depth: int,
-    ) -> _MultiClassNode:
+    ) -> MultiClassNode:
         """Recursively build the multi-class tree.
 
-        Mirrors :meth:`NewtonTree._build` but evaluates gains on a
+        Mirrors :meth:`NewtonTree.build` but evaluates gains on a
         per-class vector basis. The split is selected to maximize the
         *aggregate* second-order gain across all classes; the same
         split structure is then used for every class's scalar weight.
@@ -591,7 +603,7 @@ class MultiClassNewtonTree:
         4. Keep the split with the largest aggregate gain above
            ``min_gain`` and recurse on both partitions.
         """
-        node = _MultiClassNode(is_leaf=True)
+        node = MultiClassNode(is_leaf=True)
         # Per-class leaf weights: w_k = -Σ g_k / (Σ h_k + λ + eps).
         sum_h = np.sum(h, axis=0)  # (K,)
         node.weight = -np.sum(g, axis=0) / (sum_h + lam + 1e-12)  # (K,)
@@ -662,14 +674,14 @@ class MultiClassNewtonTree:
         node.is_leaf = False
         node.feature_idx = best_feat
         node.threshold = best_thresh
-        node.left = self._build(
+        node.left = self.build(
             x[best_left_idx],
             g[best_left_idx],
             h[best_left_idx],
             lam,
             depth + 1,
         )
-        node.right = self._build(
+        node.right = self.build(
             x[best_right_idx],
             g[best_right_idx],
             h[best_right_idx],
@@ -678,7 +690,7 @@ class MultiClassNewtonTree:
         )
         return node
 
-    def _validate_fit_inputs(
+    def validate_fit_inputs(
         self,
         x: np.ndarray,
         g: np.ndarray,

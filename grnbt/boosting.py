@@ -26,7 +26,7 @@ Architectural notes
 -------------------
 
 * ``BaseBoosting`` captures the shared training loop. Subclasses only
-  override ``_compute_lambda``; the multi-class subclass additionally
+  override ``compute_lambda``; the multi-class subclass additionally
   overrides ``fit`` and ``predict`` because of the multi-output nature
   of ``F``.
 * The initial prediction ``F0`` is stored as the **constant** baseline
@@ -54,7 +54,7 @@ class BaseBoosting:
     """Base class for Newton boosting engines.
 
     Holds the training loop and prediction logic shared by all
-    sub-classes. Subclasses must implement ``_compute_lambda`` to
+    sub-classes. Subclasses must implement ``compute_lambda`` to
     decide the per-iteration regularization ``λ_k``.
 
     Lifecycle:
@@ -163,7 +163,7 @@ class BaseBoosting:
                 tree = NewtonTree(...).fit(x, g, h, λ_k)
                 F_{k+1} = F_k + η * tree.predict(x)
 
-        The initial ``F_0`` is set by :meth:`_init_prediction` (default
+        The initial ``F_0`` is set by :meth:`init_prediction` (default
         zero vector). Loss, ``λ_k`` and ``grad_norm`` are logged at every
         iteration.
 
@@ -179,8 +179,8 @@ class BaseBoosting:
             ValueError: If shapes mismatch, arrays are empty, or any
                 element is ``NaN`` / ``Inf``.
         """
-        self._validate_fit_inputs(x, y)
-        self.F0 = self._init_prediction(y)
+        self.validate_fit_inputs(x, y)
+        self.F0 = self.init_prediction(y)
         f_current = self.F0.copy()
         n = x.shape[0]
         for k in range(self.n_estimators):
@@ -188,7 +188,7 @@ class BaseBoosting:
             g = self.loss.gradient(y, f_current)
             h = self.loss.hessian(y, f_current)
             # 2. Decide λ_k (override point for GRN vs. vanilla).
-            lam_k = self._compute_lambda(g, h, n)
+            lam_k = self.compute_lambda(g, h, n)
             # 3. Fit a depth-limited NewtonTree to the surrogate.
             tree = NewtonTree(
                 max_depth=self.max_depth,
@@ -235,7 +235,7 @@ class BaseBoosting:
                 "Model has not been fitted yet. Call fit() before predict()."
             )
 
-        # When F0 was stored as a 0-D scalar (the ``_init_prediction``
+        # When F0 was stored as a 0-D scalar (the ``init_prediction``
         # default), use it directly. Otherwise it is an ``(n_train,)``
         # array and we take its mean — the standard choice for
         # non-constant baselines.
@@ -254,7 +254,7 @@ class BaseBoosting:
             f_out += self.learning_rate * tree.predict(x)
         return np.asarray(f_out, dtype=float)
 
-    def _init_prediction(self, y: np.ndarray) -> np.ndarray:
+    def init_prediction(self, y: np.ndarray) -> np.ndarray:
         """Initialize the ensemble prediction.
 
         The default is a zero vector. Subclasses may override
@@ -272,7 +272,7 @@ class BaseBoosting:
         result: np.ndarray = np.zeros_like(y, dtype=float)
         return np.asarray(result, dtype=float)
 
-    def _compute_lambda(self, g: np.ndarray, h: np.ndarray, n: int) -> float:
+    def compute_lambda(self, g: np.ndarray, h: np.ndarray, n: int) -> float:
         """Compute the per-iteration regularization ``λ_k``.
 
         Subclasses override this method: vanilla boosting returns the
@@ -291,7 +291,7 @@ class BaseBoosting:
         """
         raise NotImplementedError
 
-    def _validate_fit_inputs(self, x: np.ndarray, y: np.ndarray) -> None:
+    def validate_fit_inputs(self, x: np.ndarray, y: np.ndarray) -> None:
         """Validate the inputs to :meth:`fit`.
 
         Raises:
@@ -328,9 +328,24 @@ class VanillaNewtonBoosting(BaseBoosting):
     benchmarks GRN: it diverges on losses whose Hessian depends on the
     prediction (e.g., Charbonnier) and converges only under strong-
     convexity / smoothness assumptions.
+
+    Examples:
+        >>> import numpy as np
+        >>> from grnbt.boosting import VanillaNewtonBoosting
+        >>> from grnbt.losses import MSELoss
+        >>> rng = np.random.RandomState(0)
+        >>> x = rng.randn(32, 3)
+        >>> y = x[:, 0] + 0.1 * rng.randn(32)
+        >>> model = VanillaNewtonBoosting(
+        ...     loss=MSELoss(), n_estimators=10, max_depth=2, lam_base=0.1,
+        ... )
+        >>> model.fit(x, y)
+        <...>
+        >>> model.predict(x).shape
+        (32,)
     """
 
-    def _compute_lambda(self, g: np.ndarray, h: np.ndarray, n: int) -> float:
+    def compute_lambda(self, g: np.ndarray, h: np.ndarray, n: int) -> float:
         """Return the static ``λ_base`` unchanged for every iteration.
 
         Args:
@@ -358,9 +373,24 @@ class GradientRegularizedNewtonBoosting(BaseBoosting):
     far from the optimum — and decays toward ``λ_base`` as optimization
     progresses. This yields the paper's ``O(1/k^2)`` global rate for
     convex losses with Lipschitz Hessian.
+
+    Examples:
+        >>> import numpy as np
+        >>> from grnbt.boosting import GradientRegularizedNewtonBoosting
+        >>> from grnbt.losses import CharbonnierLoss
+        >>> rng = np.random.RandomState(0)
+        >>> x = rng.randn(32, 3)
+        >>> y = x[:, 0] + 0.1 * rng.randn(32)
+        >>> model = GradientRegularizedNewtonBoosting(
+        ...     loss=CharbonnierLoss(), n_estimators=10, max_depth=2,
+        ... )
+        >>> model.fit(x, y)
+        <...>
+        >>> model.history.get("lambda_k")  # adaptive λ_k
+        [...]
     """
 
-    def _compute_lambda(self, g: np.ndarray, h: np.ndarray, n: int) -> float:
+    def compute_lambda(self, g: np.ndarray, h: np.ndarray, n: int) -> float:
         """Compute the adaptive ``λ_k`` from Proposition 5.1.
 
         Args:
@@ -395,7 +425,7 @@ class MultiClassNewtonBoosting(BaseBoosting):
 
     Like :class:`BaseBoosting`, the only difference between vanilla
     multi-class and GRN multi-class is the per-iteration ``λ_k``
-    recipe, controlled by :meth:`_compute_lambda_for_multiclass`.
+    recipe,         controlled by :meth:`compute_lambda_for_multiclass`.
 
     Attributes:
         n_classes: Number of target classes ``K``.
@@ -463,7 +493,7 @@ class MultiClassNewtonBoosting(BaseBoosting):
            current logits ``F_k``.
         2. The Hessian is reduced to its per-class diagonal
            ``h_diag ∈ (N, K)`` for the tree builder.
-        3. ``λ_k`` is computed via :meth:`_compute_lambda_for_multiclass`.
+        3. ``λ_k`` is computed via :meth:`compute_lambda_for_multiclass`.
         4. A single :class:`MultiClassNewtonTree` fits
            ``(x, g, h_diag, λ_k)`` and produces a ``K``-dimensional
            weak learner.
@@ -482,8 +512,8 @@ class MultiClassNewtonBoosting(BaseBoosting):
             ValueError: On shape mismatch, empty data, out-of-range
                 labels, or non-finite values.
         """
-        self._validate_fit_inputs(x, y)
-        self._validate_multiclass_labels(y)
+        self.validate_fit_inputs(x, y)
+        self.validate_multiclass_labels(y)
         n = x.shape[0]
         self.F0 = np.zeros((n, self.n_classes), dtype=float)
         f_current = self.F0.copy()
@@ -495,8 +525,8 @@ class MultiClassNewtonBoosting(BaseBoosting):
             g_norm = float(np.linalg.norm(g))
             # Tree builder consumes per-class Hessians, so we extract
             # the diagonal of the (n, K, K) block Hessian.
-            h_diag = self._extract_hessian_diagonal(h)
-            lam_k = self._compute_lambda_for_multiclass(g_norm, h_diag, n)
+            h_diag = self.extract_hessian_diagonal(h)
+            lam_k = self.compute_lambda_for_multiclass(g_norm, h_diag, n)
 
             tree = MultiClassNewtonTree(
                 n_classes=self.n_classes,
@@ -548,7 +578,7 @@ class MultiClassNewtonBoosting(BaseBoosting):
             f_out = f_out + self.learning_rate * tree.predict(x)
 
         if self.softmax_output:
-            return self._softmax(f_out)
+            return self.softmax(f_out)
         return f_out
 
     def predict_proba(self, x: np.ndarray) -> np.ndarray:
@@ -567,9 +597,9 @@ class MultiClassNewtonBoosting(BaseBoosting):
         logits = self.predict(x)
         if self.softmax_output:
             return logits
-        return self._softmax(logits)
+        return self.softmax(logits)
 
-    def _softmax(self, z: np.ndarray) -> np.ndarray:
+    def softmax(self, z: np.ndarray) -> np.ndarray:
         """Numerically stable row-wise softmax.
 
         Subtracts the per-row maximum before exponentiation to avoid
@@ -586,7 +616,7 @@ class MultiClassNewtonBoosting(BaseBoosting):
         exp_z = np.exp(z - z_max)
         return np.asarray(exp_z / np.sum(exp_z, axis=1, keepdims=True), dtype=float)
 
-    def _extract_hessian_diagonal(self, h: np.ndarray) -> np.ndarray:
+    def extract_hessian_diagonal(self, h: np.ndarray) -> np.ndarray:
         """Extract the diagonal of a (possibly block) Hessian.
 
         For scalar Hessians (i.e. when ``n_classes == 1``) the input is
@@ -607,7 +637,7 @@ class MultiClassNewtonBoosting(BaseBoosting):
             return np.asarray(np.diagonal(h, axis1=1, axis2=2), dtype=float)
         raise ValueError(f"Unexpected Hessian shape: {h.shape}")
 
-    def _compute_lambda_for_multiclass(
+    def compute_lambda_for_multiclass(
         self, grad_norm: float, h_diag: np.ndarray, n: int
     ) -> float:
         """Compute ``λ_k`` for the multi-class iteration.
@@ -624,12 +654,12 @@ class MultiClassNewtonBoosting(BaseBoosting):
             ``λ_k = λ_base + sqrt(M * ||g||)`` where
             ``M = M_0 * sqrt(N)`` per Proposition 5.1.
         """
-        del h_diag  # Reserved for future Hessian-aware λ scaling.
+        del h_diag  # Unused; kept for API symmetry with single-class compute_lambda.
         m = self.loss.empirical_risk_lipschitz(n)
         lam_adaptive = np.sqrt(m * grad_norm)
         return float(self.lam_base + lam_adaptive)
 
-    def _validate_multiclass_labels(self, y: np.ndarray) -> None:
+    def validate_multiclass_labels(self, y: np.ndarray) -> None:
         """Validate that ``y`` contains valid integer multi-class labels.
 
         Raises:
@@ -644,7 +674,7 @@ class MultiClassNewtonBoosting(BaseBoosting):
                 f"got range [{y.min()}, {y.max()}]"
             )
 
-    def _validate_fit_inputs(self, x: np.ndarray, y: np.ndarray) -> None:
+    def validate_fit_inputs(self, x: np.ndarray, y: np.ndarray) -> None:
         """Validate the inputs to multi-class :meth:`fit`.
 
         In addition to the standard checks, ``y`` is validated to be

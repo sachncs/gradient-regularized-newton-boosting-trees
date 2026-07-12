@@ -41,7 +41,7 @@ from typing import Dict
 import numpy as np
 
 
-def _validate_diagonal_inputs(
+def validate_diagonal_inputs(
     g: np.ndarray, h: np.ndarray, f_exact: np.ndarray, f_weak: np.ndarray
 ) -> None:
     """Validate inputs for the diagonal-Hessian diagnostics.
@@ -163,7 +163,7 @@ def cosine_angle_theta(
         ValueError: For shape mismatches, empty inputs, or non-finite
             values.
     """
-    _validate_diagonal_inputs(g, h, f_exact, f_weak)
+    validate_diagonal_inputs(g, h, f_exact, f_weak)
 
     # Numerator: <f_exact, f_weak>_H = Σ_i h_i * f_exact_i * f_weak_i.
     num: float = float(np.sum(h * f_exact * f_weak))

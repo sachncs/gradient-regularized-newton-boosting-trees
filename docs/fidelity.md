@@ -12,15 +12,15 @@
 |-----------------|----------------------|----------|
 | **Algorithm 1** — Vanilla Restricted Newton Descent | **Exact** | `grnbt/boosting.py` (`VanillaNewtonBoosting`) |
 | **Algorithm 2** — Gradient Regularized Restricted Newton | **Exact** | `grnbt/boosting.py` (`GradientRegularizedNewtonBoosting`) |
-| Adaptive regularization `λ_k = λ_base + sqrt(M ||g_k||)` | **Exact** | `boosting.py:_compute_lambda` |
+| Adaptive regularization `λ_k = λ_base + sqrt(M ||g_k||)` | **Exact** | `boosting.py:compute_lambda` |
 | Proposition 5.1 — `M = M_0 sqrt(N)` scaling | **Exact** | `losses.py:empirical_risk_lipschitz` |
 | **Loss gradients & Hessians** (Appendix A) | **Exact** | `grnbt/losses.py` |
 | — MSE | Exact | `MSELoss` |
 | — Charbonnier | Exact | `CharbonnierLoss` |
 | — Binary Cross Entropy | Exact | `BinaryCrossEntropyLoss` |
 | — Categorical Cross Entropy | Exact | `CategoricalCrossEntropyLoss` |
-| **Newton tree leaf weight** `w = -∑g / (∑h + λ)` | **Exact** | `tree.py:_Node.weight` |
-| **Newton tree split gain** `gain = ½[(∑g_L)²/(∑h_L+λ) + ...]` | **Exact** | `tree.py:_build` |
+| **Newton tree leaf weight** `w = -∑g / (∑h + λ)` | **Exact** | `tree.py:Node.weight` |
+| **Newton tree split gain** `gain = ½[(∑g_L)²/(∑h_L+λ) + ...]` | **Exact** | `tree.py:build` |
 | **Exact Newton direction** in ℝ^N (diagonal H) | **Exact** | `diagnostics.py:exact_newton_direction` |
 | **Cosine angle `Θ_k`** in H-induced inner product | **Exact** | `diagnostics.py:cosine_angle_theta` |
 | **Weak gradient edge `γ_k`** | **Exact** | `diagnostics.py:weak_gradient_edge_gamma` |

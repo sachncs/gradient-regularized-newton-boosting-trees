@@ -35,7 +35,7 @@ from grnbt.boosting import GradientRegularizedNewtonBoosting, VanillaNewtonBoost
 from grnbt.losses import CharbonnierLoss, MSELoss
 
 
-def _make_synthetic(n_samples: int = 200, n_features: int = 5, seed: int = 42):
+def make_synthetic(n_samples: int = 200, n_features: int = 5, seed: int = 42):
     """Generate a small synthetic regression dataset.
 
     Args:
@@ -62,7 +62,7 @@ def main() -> None:
         configuration. The total runtime is approximately 2-3 minutes
         on a modern CPU.
     """
-    x, y = _make_synthetic()
+    x, y = make_synthetic()
     rows = []
     for loss_cls, loss_name in [(MSELoss, "MSE"), (CharbonnierLoss, "Charbonnier")]:
         for eta in [0.1, 0.5, 1.0]:

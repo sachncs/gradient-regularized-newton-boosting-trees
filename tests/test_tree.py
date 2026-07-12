@@ -1,4 +1,4 @@
-"""Tests for the :class:`grnbt.tree.NewtonTree` weak learner.
+"""Tests for the :class:`~grnbt.tree.NewtonTree` weak learner.
 
 The cases span:
 
@@ -19,11 +19,16 @@ import pytest
 from grnbt.tree import NewtonTree
 
 
-def _max_depth(node) -> int:
-    """Helper to compute maximum depth below a node."""
+def max_depth(node) -> int:
+    """Compute the maximum depth of a tree rooted at ``node``.
+
+    Recursively descends the tree, returning 0 for leaf nodes and
+    ``1 + max(left_depth, right_depth)`` for internal nodes. Used
+    by tests to verify that ``max_depth`` constraints are respected.
+    """
     if node.is_leaf:
         return 0
-    return 1 + max(_max_depth(node.left), _max_depth(node.right))
+    return 1 + max(max_depth(node.left), max_depth(node.right))
 
 
 def test_tree_leaf_weight_formula():
@@ -49,7 +54,7 @@ def test_tree_depth_constraint():
     h = np.ones(n)
     tree = NewtonTree(max_depth=2, min_samples_leaf=1)
     tree.fit(x, g, h, 0.0)
-    assert _max_depth(tree.root) <= 2
+    assert max_depth(tree.root) <= 2
 
 
 def test_tree_prediction_shape():
@@ -165,7 +170,13 @@ def test_tree_inf_inputs_raises():
 
 
 def test_tree_gain_monotonicity():
-    """Deeper trees should achieve equal or lower training surrogate loss."""
+    """Deeper trees should achieve equal or lower training surrogate loss.
+
+    Verifies that the greedy split search is monotonically optimal with
+    depth: ``Q(f_depth3) <= Q(f_depth1)`` where ``Q(f) = ⟨g, f⟩ +
+    0.5 ⟨f, H f⟩`` is the quadratic surrogate the boosting engine
+    optimizes.
+    """
     rng = np.random.RandomState(7)
     n, d = 64, 4
     x = rng.randn(n, d)
@@ -175,6 +186,12 @@ def test_tree_gain_monotonicity():
 
     # Compute surrogate Q(f) = <g, f> + 0.5 <f, H f> for each tree
     def surrogate(tree):
+        """Evaluate the quadratic surrogate loss ``Q(f)`` for the given tree.
+
+        Computes ``Q(f) = ⟨g, f⟩ + 0.5 ⟨f, H f⟩`` where ``f`` is the
+        tree's prediction vector. Lower values indicate a better fit to
+        the second-order surrogate that the boosting engine optimizes.
+        """
         f = tree.predict(x)
         return float(np.sum(g * f) + 0.5 * np.sum(h * f**2))
 
@@ -191,7 +208,13 @@ def test_tree_gain_monotonicity():
 
 
 def test_tree_min_samples_leaf_respected():
-    """All leaves must have at least min_samples_leaf samples."""
+    """All leaves must have at least min_samples_leaf samples.
+
+    Walks the tree recursively, checking the sample mask at each leaf
+    against the constraint. This guarantees that the ``min_samples_leaf``
+    parameter is enforced throughout the tree structure, not just at
+    the first split.
+    """
     rng = np.random.RandomState(8)
     n, d = 32, 2
     x = rng.randn(n, d)
@@ -200,13 +223,19 @@ def test_tree_min_samples_leaf_respected():
     tree = NewtonTree(max_depth=4, min_samples_leaf=5)
     tree.fit(x, g, h, 0.0)
 
-    def _check_leaf_sizes(node, mask):
+    def check_leaf_sizes(node, mask):
+        """Recursively verify every leaf covers at least ``min_samples_leaf`` samples.
+
+        Walks the tree structure using ``mask`` to track which samples
+        reach each node. At leaf nodes, asserts that
+        ``count_nonzero(mask) >= min_samples_leaf``.
+        """
         if node.is_leaf:
             assert np.count_nonzero(mask) >= 5
             return
         left_mask = mask & (x[:, node.feature_idx] <= node.threshold)
         right_mask = mask & ~left_mask
-        _check_leaf_sizes(node.left, left_mask)
-        _check_leaf_sizes(node.right, right_mask)
+        check_leaf_sizes(node.left, left_mask)
+        check_leaf_sizes(node.right, right_mask)
 
-    _check_leaf_sizes(tree.root, np.ones(n, dtype=bool))
+    check_leaf_sizes(tree.root, np.ones(n, dtype=bool))

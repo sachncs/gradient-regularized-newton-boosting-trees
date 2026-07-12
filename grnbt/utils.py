@@ -49,6 +49,13 @@ def empirical_norm(v: np.ndarray, weights: Optional[np.ndarray] = None) -> float
         ValueError: If ``v`` is empty, contains ``NaN`` / ``Inf``,
             or if ``weights`` have the wrong shape, contain
             ``NaN`` / ``Inf``, or negative values.
+
+    Examples:
+        >>> import numpy as np
+        >>> empirical_norm(np.array([3.0, 4.0]))
+        3.5355339059327373
+        >>> empirical_norm(np.array([1.0, 2.0, 3.0]), np.array([1.0, 0.0, 1.0]))
+        3.1622776601683795
     """
     if not isinstance(v, np.ndarray):
         raise TypeError(f"v must be a numpy.ndarray, got {type(v).__name__}")
@@ -131,13 +138,23 @@ class History:
     list. Use external synchronization if needed.
 
     Attributes:
-        None public; the recorded data is exposed through :meth:`get`,
-        :meth:`keys`, and :meth:`as_dict`.
+        data: Internal storage dictionary mapping metric names to
+            lists of recorded floats. Access via :meth:`get`,
+            :meth:`keys`, and :meth:`as_dict` for the public interface.
+
+    Examples:
+        >>> hist = History()
+        >>> hist.log("loss", 1.0)
+        >>> hist.log("loss", 0.5)
+        >>> hist.get("loss")
+        [1.0, 0.5]
+        >>> hist.keys()
+        ['loss']
     """
 
     def __init__(self) -> None:
         """Initialize empty history."""
-        self._data: dict[str, list[float]] = {}
+        self.data: dict[str, list[float]] = {}
 
     def log(self, key: str, value: float) -> None:
         """Append a scalar value to a named series.
@@ -159,7 +176,7 @@ class History:
         val_float = float(value)
         if not np.isfinite(val_float):
             raise ValueError(f"value must be finite, got {value}")
-        self._data.setdefault(key, []).append(val_float)
+        self.data.setdefault(key, []).append(val_float)
 
     def get(self, key: str) -> list[float]:
         """Retrieve a recorded series.
@@ -176,7 +193,7 @@ class History:
         """
         if not isinstance(key, str):
             raise TypeError(f"key must be a string, got {type(key).__name__}")
-        return self._data.get(key, [])
+        return self.data.get(key, [])
 
     def keys(self) -> list[str]:
         """Return all recorded metric names, sorted lexicographically.
@@ -184,7 +201,7 @@ class History:
         Returns:
             Sorted list of unique metric names.
         """
-        return sorted(self._data.keys())
+        return sorted(self.data.keys())
 
     def as_dict(self) -> dict[str, list[float]]:
         """Return a deep copy of the full history.
@@ -195,4 +212,4 @@ class History:
         Returns:
             Dictionary mapping metric names to fresh lists of values.
         """
-        return {k: list(v) for k, v in self._data.items()}
+        return {k: list(v) for k, v in self.data.items()}

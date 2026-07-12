@@ -1,7 +1,7 @@
-"""Tests for :class:`grnbt.tree.MultiClassNewtonTree` weak learner.
+"""Tests for :class:`~grnbt.tree.MultiClassNewtonTree` weak learner.
 
 The multi-class tree shares most of its structure with
-:class:`grnbt.tree.NewtonTree` but uses vector-valued leaf weights
+:class:`~grnbt.tree.NewtonTree` but uses vector-valued leaf weights
 and aggregates Newton gain across classes. These tests verify:
 
 * closed-form leaf weights ``w_k = -Σg_k / (Σh_k + λ)`` per class;
@@ -17,11 +17,16 @@ import pytest
 from grnbt.tree import MultiClassNewtonTree
 
 
-def _max_depth(node) -> int:
-    """Helper to compute maximum depth below a node."""
+def max_depth(node) -> int:
+    """Compute the maximum depth of a tree rooted at ``node``.
+
+    Recursively descends the tree, returning 0 for leaf nodes and
+    ``1 + max(left_depth, right_depth)`` for internal nodes. Used
+    by tests to verify that ``max_depth`` constraints are respected.
+    """
     if node.is_leaf:
         return 0
-    return 1 + max(_max_depth(node.left), _max_depth(node.right))
+    return 1 + max(max_depth(node.left), max_depth(node.right))
 
 
 def test_multiclass_tree_leaf_weight_formula():
@@ -48,7 +53,7 @@ def test_multiclass_tree_depth_constraint():
     h = np.ones((n, k))
     tree = MultiClassNewtonTree(n_classes=k, max_depth=2, min_samples_leaf=1)
     tree.fit(x, g, h, 0.0)
-    assert _max_depth(tree.root) <= 2
+    assert max_depth(tree.root) <= 2
 
 
 def test_multiclass_tree_prediction_shape():
@@ -89,7 +94,13 @@ def test_multiclass_tree_constant_feature():
 
 
 def test_multiclass_tree_gain_sums_across_classes():
-    """Split gain must be the sum of gains across all classes."""
+    """Split gain must be the sum of gains across all classes.
+
+    Verifies that the aggregate surrogate ``Q(f) = Σ_k [⟨g_k, f_k⟩ +
+    0.5 ⟨f_k, H_k f_k⟩]`` is monotonically non-increasing with depth.
+    The multi-class tree selects splits to maximize the per-class gain
+    sum, so deeper trees should achieve equal or lower surrogate values.
+    """
     rng = np.random.RandomState(3)
     n, d, k = 32, 2, 3
     x = rng.randn(n, d)
