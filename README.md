@@ -4,8 +4,8 @@
   <p align="center">
     <a href="#installation"><img src="https://img.shields.io/badge/python-3.9%20%7C%203.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue" alt="Python"></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="License"></a>
-    <a href="https://github.com/sachncs/gradient-regularized-newton-boosting-trees/actions"><img src="https://img.shields.io/github/actions/workflow/status/sachncs/gradient-regularized-newton-boosting-trees/ci.yml?branch=main" alt="CI"></a>
-    <a href="https://codecov.io/gh/sachncs/gradient-regularized-newton-boosting-trees"><img src="https://codecov.io/gh/sachncs/gradient-regularized-newton-boosting-trees/branch/main/graph/badge.svg" alt="codecov"></a>
+    <a href="https://github.com/sachncs/gradient-regularized-newton-boosting-trees/actions"><img src="https://img.shields.io/github/actions/workflow/status/sachncs/gradient-regularized-newton-boosting-trees/ci.yml?branch=master" alt="CI"></a>
+    <a href="https://codecov.io/gh/sachncs/gradient-regularized-newton-boosting-trees"><img src="https://codecov.io/gh/sachncs/gradient-regularized-newton-boosting-trees/branch/master/graph/badge.svg" alt="codecov"></a>
     <a href="https://pypi.org/project/grnbt/"><img src="https://img.shields.io/pypi/v/grnbt.svg" alt="PyPI"></a>
     <a href="https://github.com/sachncs/gradient-regularized-newton-boosting-trees/stargazers"><img src="https://img.shields.io/github/stars/sachncs/gradient-regularized-newton-boosting-trees" alt="Stars"></a>
     <a href="https://mypy-lang.org/"><img src="https://img.shields.io/badge/mypy-strict-green.svg" alt="Checked with mypy"></a>
@@ -178,15 +178,15 @@ for k, tree in enumerate(model.trees):
 
 ### Boosting Hyperparameters
 
-| Parameter         | Default | Description |
-|-------------------|---------|-------------|
-| `loss`            | *required* | Loss function instance (`MSELoss`, `CharbonnierLoss`, `BinaryCrossEntropyLoss`, `CategoricalCrossEntropyLoss`). |
-| `n_estimators`    | `100`    | Number of boosting rounds ``K``. |
-| `learning_rate`   | `1.0`    | Step size ``η`` (paper default). |
-| `max_depth`       | `3`      | Maximum tree depth (root depth `0`). |
-| `min_samples_leaf`| `1`      | Minimum samples per leaf. |
-| `lam_base`        | `0.0`    | Static ``λ_base`` regularization component. |
-| `verbose`         | `False`  | Print metrics every 10 iterations. |
+| Setting | Env Variable | Default | Description |
+|---------|--------------|---------|-------------|
+| `loss` | — | *required* | Loss function instance (`MSELoss`, `CharbonnierLoss`, `BinaryCrossEntropyLoss`, `CategoricalCrossEntropyLoss`). |
+| `n_estimators` | — | `100` | Number of boosting rounds ``K``. |
+| `learning_rate` | — | `1.0` | Step size ``η`` (paper default). |
+| `max_depth` | — | `3` | Maximum tree depth (root depth `0`). |
+| `min_samples_leaf` | — | `1` | Minimum samples per leaf. |
+| `lam_base` | — | `0.0` | Static ``λ_base`` regularization component. |
+| `verbose` | — | `False` | Print metrics every 10 iterations. |
 
 ### Adaptive Regularization (GRN only)
 
@@ -202,10 +202,10 @@ and ``M_0`` is supplied by the loss (Appendix A):
 
 ### Multi-Class Only
 
-| Parameter       | Default | Description |
-|-----------------|---------|-------------|
-| `n_classes`     | `2`     | Number of target classes ``K`` (≥ 2). |
-| `softmax_output`| `True`  | `predict()` returns probabilities; if `False`, returns logits. |
+| Setting | Env Variable | Default | Description |
+|---------|--------------|---------|-------------|
+| `n_classes` | — | `2` | Number of target classes ``K`` (≥ 2). |
+| `softmax_output` | — | `True` | `predict()` returns probabilities; if `False`, returns logits. |
 
 ---
 
@@ -227,6 +227,26 @@ python experiments/ablations.py
 
 See [`docs/experiments.md`](docs/experiments.md) for expected
 behavior, analysis snippets, and reproducibility notes.
+
+---
+
+## API
+
+| Symbol | Type | Description |
+|--------|------|-------------|
+| `VanillaNewtonBoosting` | class | Static-λ second-order GBDT (Algorithm 1) |
+| `GradientRegularizedNewtonBoosting` | class | Adaptive-λ boosting (Algorithm 2) |
+| `MultiClassNewtonBoosting` | class | K-class softmax boosting |
+| `MSELoss` | class | Mean-squared-error loss (`M_0 = 0`) |
+| `CharbonnierLoss` | class | Pseudo-Huber-style loss (`M_0 = 1`) |
+| `BinaryCrossEntropyLoss` | class | BCE loss (`M_0 = 1/4`) |
+| `CategoricalCrossEntropyLoss` | class | Multi-class CCE loss (`M_0 = 1/4`) |
+| `NewtonTree` | class | Scalar-output greedy Newton tree |
+| `MultiClassNewtonTree` | class | Vector-output K-class Newton tree |
+| `cosine_angle_theta` | function | Hilbert-space angle Θ_k |
+| `exact_newton_direction` | function | Closed-form `f = -g/(h+λ)` |
+| `verify_lemma_4_2` | function | Lemma 4.2 identity check |
+| `weak_gradient_edge_gamma` | function | Computes γ_k weak gradient edge |
 
 ---
 
@@ -269,6 +289,31 @@ gradient-regularized-newton-boosting-trees/
 ├── pyproject.toml               # Build & tool config
 └── README.md
 ```
+
+---
+
+## Testing
+
+```bash
+pytest tests/ -v
+pytest tests/ -v --cov=grnbt --cov-report=term-missing
+```
+
+---
+
+## Build
+
+```bash
+python -m build
+```
+
+---
+
+## Release
+
+Versions follow [Semantic Versioning](https://semver.org/). Releases are tagged
+via `version:X.Y.Z` commits in [CHANGELOG.md](CHANGELOG.md) and published to
+PyPI via the CI workflow (`release.yml`).
 
 ---
 
