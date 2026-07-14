@@ -29,7 +29,7 @@ This project adheres to the [Contributor Covenant Code of Conduct](CODE_OF_CONDU
    ```
 3. Add the upstream remote:
    ```bash
-   git remote add upstream https://github.com/sachn-cs/gradient-regularized-newton-boosting-trees.git
+   git remote add upstream https://github.com/sachncs/gradient-regularized-newton-boosting-trees.git
    ```
 4. Create a branch for your changes:
    ```bash
@@ -40,7 +40,7 @@ This project adheres to the [Contributor Covenant Code of Conduct](CODE_OF_CONDU
 
 ### Reporting Bugs
 
-Before creating a bug report, please check [existing issues](https://github.com/sachn-cs/gradient-regularized-newton-boosting-trees/issues) to avoid duplicates.
+Before creating a bug report, please check [existing issues](https://github.com/sachncs/gradient-regularized-newton-boosting-trees/issues) to avoid duplicates.
 
 When creating a bug report, include:
 

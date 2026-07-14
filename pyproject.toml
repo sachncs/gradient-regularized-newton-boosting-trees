@@ -35,11 +35,11 @@ plot = ["matplotlib>=3.4.0"]
 dev = ["pytest>=7.0.0", "pytest-cov>=4.0.0", "scikit-learn>=1.0.0", "matplotlib>=3.4.0", "black>=23.0.0", "isort>=5.12.0", "mypy>=1.0.0"]
 
 [project.urls]
-Homepage = "https://github.com/sachn-cs/gradient-regularized-newton-boosting-trees"
-Documentation = "https://github.com/sachn-cs/gradient-regularized-newton-boosting-trees/tree/main/docs"
-Repository = "https://github.com/sachn-cs/gradient-regularized-newton-boosting-trees"
-"Bug Tracker" = "https://github.com/sachn-cs/gradient-regularized-newton-boosting-trees/issues"
-Changelog = "https://github.com/sachn-cs/gradient-regularized-newton-boosting-trees/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/sachncs/gradient-regularized-newton-boosting-trees"
+Documentation = "https://github.com/sachncs/gradient-regularized-newton-boosting-trees/tree/main/docs"
+Repository = "https://github.com/sachncs/gradient-regularized-newton-boosting-trees"
+"Bug Tracker" = "https://github.com/sachncs/gradient-regularized-newton-boosting-trees/issues"
+Changelog = "https://github.com/sachncs/gradient-regularized-newton-boosting-trees/blob/main/CHANGELOG.md"
 
 [tool.setuptools.packages.find]
 where = ["."]

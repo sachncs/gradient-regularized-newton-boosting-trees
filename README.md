@@ -4,10 +4,10 @@
   <p align="center">
     <a href="#installation"><img src="https://img.shields.io/badge/python-3.9%20%7C%203.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue" alt="Python"></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="License"></a>
-    <a href="https://github.com/sachn-cs/gradient-regularized-newton-boosting-trees/actions"><img src="https://img.shields.io/github/actions/workflow/status/sachn-cs/gradient-regularized-newton-boosting-trees/ci.yml?branch=main" alt="CI"></a>
-    <a href="https://codecov.io/gh/sachn-cs/gradient-regularized-newton-boosting-trees"><img src="https://codecov.io/gh/sachn-cs/gradient-regularized-newton-boosting-trees/branch/main/graph/badge.svg" alt="codecov"></a>
+    <a href="https://github.com/sachncs/gradient-regularized-newton-boosting-trees/actions"><img src="https://img.shields.io/github/actions/workflow/status/sachncs/gradient-regularized-newton-boosting-trees/ci.yml?branch=main" alt="CI"></a>
+    <a href="https://codecov.io/gh/sachncs/gradient-regularized-newton-boosting-trees"><img src="https://codecov.io/gh/sachncs/gradient-regularized-newton-boosting-trees/branch/main/graph/badge.svg" alt="codecov"></a>
     <a href="https://pypi.org/project/grnbt/"><img src="https://img.shields.io/pypi/v/grnbt.svg" alt="PyPI"></a>
-    <a href="https://github.com/sachn-cs/gradient-regularized-newton-boosting-trees/stargazers"><img src="https://img.shields.io/github/stars/sachn-cs/gradient-regularized-newton-boosting-trees" alt="Stars"></a>
+    <a href="https://github.com/sachncs/gradient-regularized-newton-boosting-trees/stargazers"><img src="https://img.shields.io/github/stars/sachncs/gradient-regularized-newton-boosting-trees" alt="Stars"></a>
     <a href="https://mypy-lang.org/"><img src="https://img.shields.io/badge/mypy-strict-green.svg" alt="Checked with mypy"></a>
   </p>
 </p>
@@ -63,7 +63,7 @@ pip install grnbt
 ### From source
 
 ```bash
-git clone https://github.com/sachn-cs/gradient-regularized-newton-boosting-trees.git
+git clone https://github.com/sachncs/gradient-regularized-newton-boosting-trees.git
 cd gradient-regularized-newton-boosting-trees
 pip install -e .
 ```
