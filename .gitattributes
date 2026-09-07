@@ -1,0 +1,24 @@
+* text=auto
+
+# Python
+*.py text diff=python
+*.pyi text diff=python
+
+# Documentation
+*.md text diff=markdown
+*.rst text
+
+# Config
+*.toml text
+*.yml text
+*.yaml text
+*.json text
+
+# Binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.npz binary
+*.pdf binary
+*.so binary
