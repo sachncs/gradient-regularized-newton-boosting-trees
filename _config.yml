@@ -1,0 +1,8 @@
+title: "gradient-regularized-newton-boosting-trees"
+description: "Gradient Regularized Newton Boosting Trees"
+theme: minima
+logo: /assets/logo.svg
+show_downloads: false
+permalink: /:title/
+plugins:
+  - jekyll-feed
