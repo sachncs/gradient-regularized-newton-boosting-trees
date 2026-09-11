@@ -3,7 +3,7 @@
 This document restates the paper's problem definition, notation, model architecture,
 objective functions, and convergence results as implemented in this codebase.
 
-**Paper:** Zozoulenko et al., *Gradient Regularized Newton Boosting Trees with Global Convergence*, arXiv:2605.00581v1.
+**Paper:** Zozoulenko et al., *Gradient Regularized Newton Boosting Trees with Global Convergence*, preprint.
 
 ---
 

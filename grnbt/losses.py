@@ -31,7 +31,7 @@ References
 
 Zozoulenko, N., Falkowski, D., Cass, T., Gonon, L. (2026).
 *Gradient Regularized Newton Boosting Trees with Global Convergence.*
-arXiv:2605.00581v1 — Section 4 (loss gradients), Appendix A (``M_0`` derivations),
+Preprint — Section 4 (loss gradients), Appendix A (``M_0`` derivations),
 and Proposition 5.1 (scaling of empirical Hessian Lipschitz constants).
 
 Examples
