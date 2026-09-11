@@ -2,7 +2,7 @@
 
 ## v0.1.0 (current)
 
-Paper-faithful reproduction, 126 tests, three experiment scripts, full docs.
+Paper-faithful reproduction, 139 tests, three experiment scripts, full docs.
 
 ## v0.2.0
 
