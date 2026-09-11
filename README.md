@@ -43,7 +43,7 @@ making it ideal as a faithful, transparent reference implementation.
   ``w = -Σg / (Σh + λ)`` and exact Newton gain, matching the paper.
 - **Pure NumPy Implementation** — No C extensions, no framework
   dependencies; from-scratch research reproduction.
-- **Comprehensive Test Suite** — 126 tests covering correctness,
+- **Comprehensive Test Suite** — 139 tests covering correctness,
   edge cases, mathematical identities, and validation.
 - **Reproducible Experiments** — Scripts to reproduce Figures 1 and 2
   of the paper on Wine Quality and Higgs.
@@ -273,7 +273,7 @@ gradient-regularized-newton-boosting-trees/
 │   └── extensions/
 │       ├── __init__.py
 │       └── histogram_tree.py    # Bin-based split finding (non-paper)
-├── tests/                       # Test suite (126 cases)
+├── tests/                       # Test suite (139 cases)
 │   ├── conftest.py              # Shared fixtures
 │   ├── test_losses.py           # 20 cases — losses, M_0
 │   ├── test_tree.py             # 16 cases — single-tree logic
@@ -426,7 +426,7 @@ This codebase is a **byte-faithful** reproduction of the paper's formulas
 
 See [ROADMAP.md](ROADMAP.md) for planned features and milestones.
 
-- **v0.1.0** — Current release: paper-faithful reproduction, 126 tests,
+- **v0.1.0** — Current release: paper-faithful reproduction, 139 tests,
   three experiment scripts, full docs.
 - **v0.2.0** — Column subsampling, row subsampling, early stopping,
   warm-start support.
