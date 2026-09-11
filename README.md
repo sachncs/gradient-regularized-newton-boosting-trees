@@ -1,6 +1,6 @@
 <p align="center">
-  <h1 align="center">GRNBT</h1>
-  <p align="center">Pure-Python reproduction of Gradient Regularized Newton Boosting Trees with global convergence.</p>
+  <h1 align="center">GRNBT — Gradient Regularized Newton Boosting Trees</h1>
+  <p align="center">Pure-Python/NumPy reproduction with global convergence (preprint).</p>
   <p align="center">
     <a href="#installation"><img src="https://img.shields.io/badge/python-3.9%20%7C%203.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue" alt="Python"></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="License"></a>
@@ -11,7 +11,8 @@
   </p>
 </p>
 
-**GRNBT** is a pure-Python/NumPy reproduction of:
+**GRNBT** (**G**radient **R**egularized **N**ewton **B**oosting **T**rees)
+is a pure-Python/NumPy reproduction of:
 
 > N. Zozoulenko, D. Falkowski, T. Cass, L. Gonon,
 > *Gradient Regularized Newton Boosting Trees with Global Convergence*,
