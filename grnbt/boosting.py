@@ -268,6 +268,15 @@ class BaseBoosting:
         constant baseline (the mean of ``self.F0`` when stored as an
         array) and adding each tree's prediction scaled by ``η``.
 
+        Complexity:
+            ``O(n_estimators)`` in the number of stored trees — every
+            call to ``predict`` iterates over the full ensemble. There
+            is no intermediate ``F_k`` caching, so users who need
+            repeated predictions on the same ``x`` should call
+            ``predict`` once and reuse the result. For large ensembles
+            where this matters, consider the histogram-based extension
+            under :mod:`grnbt.extensions` or a compiled backend.
+
         Args:
             x: Feature matrix of shape ``(n_samples, n_features)``.
 
@@ -618,6 +627,15 @@ class MultiClassNewtonBoosting(BaseBoosting):
 
     def predict(self, x: np.ndarray) -> np.ndarray:
         """Predict on new data.
+
+        Complexity:
+            ``O(n_estimators)`` in the number of stored trees — every
+            call iterates over the full ensemble. No intermediate
+            ``F_k`` caching, so users who need repeated predictions on
+            the same ``x`` should call ``predict`` once and reuse the
+            result. For large ensembles where this matters, consider
+            the histogram-based extension under
+            :mod:`grnbt.extensions`.
 
         Args:
             x: Feature matrix of shape ``(n_samples, n_features)``.
