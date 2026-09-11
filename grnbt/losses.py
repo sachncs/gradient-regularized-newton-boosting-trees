@@ -94,9 +94,7 @@ def validate_inputs(y_true: np.ndarray, y_pred: np.ndarray) -> None:
         raise ValueError("Inputs contain infinite values.")
 
 
-def validate_cce_inputs(
-    y_true: np.ndarray, y_pred: np.ndarray, n_classes: int
-) -> None:
+def validate_cce_inputs(y_true: np.ndarray, y_pred: np.ndarray, n_classes: int) -> None:
     """Validate categorical cross-entropy inputs.
 
     Shared between ``CategoricalCrossEntropyLoss.loss``, ``.gradient``,
@@ -117,13 +115,9 @@ def validate_cce_inputs(
             values, or labels outside ``[0, n_classes - 1]``.
     """
     if not isinstance(y_true, np.ndarray):
-        raise TypeError(
-            f"y_true must be a numpy.ndarray, got {type(y_true).__name__}"
-        )
+        raise TypeError(f"y_true must be a numpy.ndarray, got {type(y_true).__name__}")
     if not isinstance(y_pred, np.ndarray):
-        raise TypeError(
-            f"y_pred must be a numpy.ndarray, got {type(y_pred).__name__}"
-        )
+        raise TypeError(f"y_pred must be a numpy.ndarray, got {type(y_pred).__name__}")
     if y_true.ndim != 1:
         raise ValueError(f"y_true must be 1-D, got shape {y_true.shape}")
     if y_pred.ndim != 2 or y_pred.shape[1] != n_classes:
@@ -162,12 +156,16 @@ class Loss(ABC):
     * :meth:`hessian_lipschitz_constant` — analytical ``M_0`` from Appendix A.
 
     The :meth:`empirical_risk_lipschitz` convenience method applies the
-    ``sqrt(N)`` scaling from Proposition 5.1 automatically.
+    ``sqrt(N)`` scaling of Proposition 5.1 automatically.
 
     Subclasses are stateless from the standpoint of the gradient/Hessian:
     all per-iteration quantities are functions only of the current
     predictions, not of internal counters.
     """
+
+    def __repr__(self) -> str:
+        """Return a debug-friendly representation including ``M_0``."""
+        return f"{type(self).__name__}(M_0={self.hessian_lipschitz_constant():g})"
 
     @abstractmethod
     def loss(self, y_true: np.ndarray, y_pred: np.ndarray) -> float:
@@ -595,6 +593,10 @@ class CategoricalCrossEntropyLoss(Loss):
         if not isinstance(n_classes, int) or n_classes < 2:
             raise ValueError(f"n_classes must be an integer >= 2, got {n_classes}")
         self.n_classes = n_classes
+
+    def __repr__(self) -> str:
+        """Return a debug-friendly representation showing ``n_classes``."""
+        return f"CategoricalCrossEntropyLoss(n_classes={self.n_classes})"
 
     def softmax(self, z: np.ndarray) -> np.ndarray:
         """Numerically stable row-wise softmax.

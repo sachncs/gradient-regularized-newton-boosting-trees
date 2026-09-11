@@ -191,3 +191,20 @@ def test_boosting_predict_new_samples():
     model.fit(x_train, y_train)
     preds = model.predict(x_test)
     assert preds.shape == (10,)
+
+
+def test_boosting_repr_shows_class_name_and_key_params():
+    """repr() of every boosting engine shows the class name and key hyperparameters."""
+    rng = np.random.RandomState(0)
+    x, y = rng.randn(8, 2), rng.randn(8)
+    m = VanillaNewtonBoosting(loss=MSELoss(), n_estimators=5, max_depth=2, lam_base=0.1)
+    r = repr(m)
+    assert "VanillaNewtonBoosting" in r
+    assert "n_estimators=5" in r
+    assert "lam_base=0.1" in r
+    assert "fitted=False" in r
+    m.fit(x, y)
+    assert "fitted=True" in repr(m)
+    grn = GradientRegularizedNewtonBoosting(loss=CharbonnierLoss(), n_estimators=3)
+    assert "GradientRegularizedNewtonBoosting" in repr(grn)
+    assert "loss=CharbonnierLoss" in repr(grn)

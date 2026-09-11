@@ -214,3 +214,16 @@ def test_cce_non_integer_labels():
     y_pred = np.zeros((3, 3))
     with pytest.raises(TypeError):
         loss.loss(y, y_pred)
+
+
+def test_loss_repr_includes_class_name_and_m0():
+    """Every loss's repr shows the class name and M_0 (or n_classes for CCE)."""
+    assert "MSELoss" in repr(MSELoss())
+    assert "M_0" in repr(MSELoss())
+    assert "CharbonnierLoss" in repr(CharbonnierLoss())
+    assert "M_0" in repr(CharbonnierLoss())
+    assert "BinaryCrossEntropyLoss" in repr(BinaryCrossEntropyLoss())
+    assert "CategoricalCrossEntropyLoss" in repr(
+        CategoricalCrossEntropyLoss(n_classes=4)
+    )
+    assert "n_classes=4" in repr(CategoricalCrossEntropyLoss(n_classes=4))
