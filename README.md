@@ -221,9 +221,9 @@ python experiments/wine_charbonnier.py
 python experiments/higgs_diagnostics.py
 # produces experiments/higgs_diagnostics_results.npz
 
-# Hyperparameter Ablations
+# Hyperparameter Ablations (3 seeds × 108 configs)
 python experiments/ablations.py
-# produces experiments/ablations.csv
+# produces experiments/ablations.csv with seed + final_loss per row
 ```
 
 See [`docs/experiments.md`](docs/experiments.md) for expected

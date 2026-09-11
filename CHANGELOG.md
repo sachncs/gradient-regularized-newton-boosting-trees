@@ -9,11 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Replaced unverified arXiv ID `2605.00581v1` with a `(preprint, id verification pending)`
-  placeholder across `README.md`, `pyproject.toml`, `CHANGELOG.md`, `docs/fidelity.md`,
-  `docs/math.md`, `grnbt/__init__.py`, and `grnbt/losses.py`. The cited id could not be
-  verified against arXiv.org from this audit; once the correct id is confirmed, update
-  all eight locations in a single follow-up commit.
+- `experiments/ablations.py` now runs each of the 108 configurations with
+  three seeds (`42`, `43`, `44`) and writes one row per `(config, seed)`
+  pair to `experiments/ablations.csv`. The previous single-seed run could
+  not distinguish stable results from lucky/unlucky draws.
 
 ## [0.1.0] - 2026-05-06
 
