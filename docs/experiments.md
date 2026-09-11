@@ -99,14 +99,17 @@ python experiments/ablations.py
 ```
 
 **Output:**
-- `experiments/ablations.csv` — one row per configuration with `final_loss`.
+- `experiments/ablations.csv` — one row per (configuration, seed) pair
+  with `seed` and `final_loss`. Each configuration is run with seeds
+  `{42, 43, 44}` so the CSV captures seed-to-seed variance.
 
 **Analysis:**
 ```python
 import pandas as pd
 
 df = pd.read_csv("experiments/ablations.csv")
-print(df.groupby(["loss", "engine"])["final_loss"].mean())
+grouped = df.groupby(["loss", "engine"])["final_loss"].agg(["mean", "std"])
+print(grouped)
 ```
 
 ---
