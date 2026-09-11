@@ -178,6 +178,13 @@ class BaseBoosting:
         zero vector). Loss, ``λ_k`` and ``grad_norm`` are logged at every
         iteration.
 
+        The training loop is structured as a template method — every
+        override point has a default implementation that subclasses can
+        specialize: :meth:`_init_f0`, :meth:`_compute_lambda`,
+        :meth:`_make_tree`, :meth:`_tree_input`, :meth:`_update_f`,
+        :meth:`_predict_tree`, :meth:`_grad_norm`. The multi-class engine
+        reuses the loop unchanged.
+
         Args:
             x: Feature matrix of shape ``(n_samples, n_features)``.
             y: Target vector of shape ``(n_samples,)``.
@@ -191,33 +198,68 @@ class BaseBoosting:
                 element is ``NaN`` / ``Inf``.
         """
         self.validate_fit_inputs(x, y)
-        self.F0 = self.init_prediction(y)
+        self.F0 = self._init_f0(y)
         f_current = self.F0.copy()
         n = x.shape[0]
         for k in range(self.n_estimators):
-            # 1. Compute empirical-risk first/second-order information.
             g = self.loss.gradient(y, f_current)
             h = self.loss.hessian(y, f_current)
-            # 2. Decide λ_k (override point for GRN vs. vanilla).
-            lam_k = self.compute_lambda(g, h, n)
-            # 3. Fit a depth-limited NewtonTree to the surrogate.
-            tree = NewtonTree(
-                max_depth=self.max_depth,
-                min_samples_leaf=self.min_samples_leaf,
-            )
-            tree.fit(x, g, h, lam_k)
-            # 4. Apply the weak learner with step size η.
-            f_weak = tree.predict(x)
-            f_current += self.learning_rate * f_weak
+            lam_k = self._compute_lambda(g, h, n)
+            tree = self._make_tree()
+            tree_input = self._tree_input(x, g, h, lam_k)
+            tree.fit(*tree_input)
+            f_weak = self._predict_tree(tree, x)
+            f_current = self._update_f(f_current, f_weak)
             self.trees.append(tree)
-            # 5. Log scalar metrics for plotting/diagnostics.
             loss_val = self.loss.loss(y, f_current)
             self.history.log("loss", loss_val)
             self.history.log("lambda_k", lam_k)
-            self.history.log("grad_norm", empirical_norm(g))
+            self.history.log("grad_norm", self._grad_norm(g))
             if self.verbose and k % 10 == 0:
                 print(f"Iter {k}: loss={loss_val:.6f} lambda={lam_k:.6f}")
         return self
+
+    def _init_f0(self, y: np.ndarray) -> np.ndarray:
+        """Initialize ``F_0``; default delegates to :meth:`init_prediction`."""
+        return self.init_prediction(y)
+
+    def _compute_lambda(self, g: np.ndarray, h: np.ndarray, n: int) -> float:
+        """Compute ``λ_k``; default delegates to :meth:`compute_lambda`."""
+        return self.compute_lambda(g, h, n)
+
+    def _make_tree(self) -> Any:
+        """Build a fresh weak learner; default is :class:`NewtonTree`.
+
+        The return type is ``Any`` because the multi-class subclass
+        returns :class:`MultiClassNewtonTree` and Python's invariance
+        makes a tighter annotation here incompatible with the override.
+        """
+        return NewtonTree(
+            max_depth=self.max_depth,
+            min_samples_leaf=self.min_samples_leaf,
+        )
+
+    def _tree_input(
+        self,
+        x: np.ndarray,
+        g: np.ndarray,
+        h: np.ndarray,
+        lam: float,
+    ) -> tuple:
+        """Pack the tree-fit arguments. Default: ``(x, g, h, lam)``."""
+        return (x, g, h, lam)
+
+    def _predict_tree(self, tree: Any, x: np.ndarray) -> np.ndarray:
+        """Weak learner prediction step; default delegates to ``tree.predict``."""
+        return tree.predict(x)
+
+    def _update_f(self, f_current: np.ndarray, f_weak: np.ndarray) -> np.ndarray:
+        """Apply the weak learner with step size ``η``; default in-place add."""
+        return f_current + self.learning_rate * f_weak
+
+    def _grad_norm(self, g: np.ndarray) -> float:
+        """Norm used in history; default is the empirical RMS."""
+        return empirical_norm(g)
 
     def predict(self, x: np.ndarray) -> np.ndarray:
         """Predict on new data.
@@ -507,7 +549,10 @@ class MultiClassNewtonBoosting(BaseBoosting):
         """Fit the multi-class boosting ensemble.
 
         Mirrors :meth:`BaseBoosting.fit` but threads ``K`` parallel
-        logits through every iteration. In each round:
+        logits through every iteration. The training loop itself is
+        inherited from :meth:`BaseBoosting.fit`; this method only
+        performs the multi-class-specific validation before delegating
+        to the base loop. Each iteration:
 
         1. ``g ∈ (N, K)`` and ``H ∈ (N, K, K)`` are computed at the
            current logits ``F_k``.
@@ -534,36 +579,42 @@ class MultiClassNewtonBoosting(BaseBoosting):
         """
         self.validate_fit_inputs(x, y)
         self.validate_multiclass_labels(y)
-        n = x.shape[0]
-        self.F0 = np.zeros((n, self.n_classes), dtype=float)
-        f_current = self.F0.copy()
-
-        for k in range(self.n_estimators):
-            g = self.loss.gradient(y, f_current)
-            h = self.loss.hessian(y, f_current)
-            # g is (n, K); use the full Frobenius norm for λ scaling.
-            g_norm = float(np.linalg.norm(g))
-            # Tree builder consumes per-class Hessians, so we extract
-            # the diagonal of the (n, K, K) block Hessian.
-            h_diag = self.extract_hessian_diagonal(h)
-            lam_k = self.compute_lambda_for_multiclass(g_norm, h_diag, n)
-
-            tree = MultiClassNewtonTree(
-                n_classes=self.n_classes,
-                max_depth=self.max_depth,
-                min_samples_leaf=self.min_samples_leaf,
-            )
-            tree.fit(x, g, h_diag, lam_k)
-            f_weak = tree.predict(x)
-            f_current = f_current + self.learning_rate * f_weak
-            self.trees.append(tree)
-            loss_val = self.loss.loss(y, f_current)
-            self.history.log("loss", loss_val)
-            self.history.log("lambda_k", lam_k)
-            self.history.log("grad_norm", empirical_norm(g))
-            if self.verbose and k % 10 == 0:
-                print(f"Iter {k}: loss={loss_val:.6f} lambda={lam_k:.6f}")
+        super().fit(x, y)
         return self
+
+    def _init_f0(self, y: np.ndarray) -> np.ndarray:
+        """Multi-class ``F_0`` is the zero-logits matrix."""
+        n = y.shape[0]
+        return np.zeros((n, self.n_classes), dtype=float)
+
+    def _compute_lambda(self, g: np.ndarray, h: np.ndarray, n: int) -> float:
+        """Compute ``λ_k`` from the multi-class gradient/Hessian.
+
+        Uses the Frobenius norm of the ``(n, K)`` gradient and the
+        diagonal of the ``(n, K, K)`` Hessian — see
+        :meth:`compute_lambda_for_multiclass`.
+        """
+        g_norm = float(np.linalg.norm(g))
+        h_diag = self.extract_hessian_diagonal(h)
+        return self.compute_lambda_for_multiclass(g_norm, h_diag, n)
+
+    def _make_tree(self) -> MultiClassNewtonTree:
+        """Build a fresh :class:`MultiClassNewtonTree`."""
+        return MultiClassNewtonTree(
+            n_classes=self.n_classes,
+            max_depth=self.max_depth,
+            min_samples_leaf=self.min_samples_leaf,
+        )
+
+    def _tree_input(
+        self,
+        x: np.ndarray,
+        g: np.ndarray,
+        h: np.ndarray,
+        lam: float,
+    ) -> tuple:
+        """Tree consumes the per-class Hessian diagonal, not the full block."""
+        return (x, g, self.extract_hessian_diagonal(h), lam)
 
     def predict(self, x: np.ndarray) -> np.ndarray:
         """Predict on new data.

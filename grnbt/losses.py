@@ -259,9 +259,7 @@ class Loss(ABC):
             raise ValueError(f"n_samples must be a positive integer, got {n_samples}")
         return float(self.hessian_lipschitz_constant() * np.sqrt(n_samples))
 
-    def hessian_diagonal(
-        self, y_true: np.ndarray, y_pred: np.ndarray
-    ) -> np.ndarray:
+    def hessian_diagonal(self, y_true: np.ndarray, y_pred: np.ndarray) -> np.ndarray:
         """Per-sample Hessian diagonal.
 
         Default implementation extracts the diagonal from the full
@@ -725,9 +723,7 @@ class CategoricalCrossEntropyLoss(Loss):
             hess[i] = (np.diag(pi) - np.outer(pi, pi)) / n
         return np.asarray(hess, dtype=float)
 
-    def hessian_diagonal(
-        self, y_true: np.ndarray, y_pred: np.ndarray
-    ) -> np.ndarray:
+    def hessian_diagonal(self, y_true: np.ndarray, y_pred: np.ndarray) -> np.ndarray:
         """Diagonal of the CCE Hessian, shape ``(n_samples, n_classes)``.
 
         For softmax the Hessian block ``diag(p) - p p^T`` has diagonal

@@ -17,7 +17,7 @@ but operate on integer class labels rather than continuous targets.
 import numpy as np
 import pytest
 
-from grnbt.boosting import MultiClassNewtonBoosting
+from grnbt.boosting import MultiClassNewtonBoosting, VanillaNewtonBoosting
 from grnbt.losses import CategoricalCrossEntropyLoss, MSELoss
 
 
@@ -199,3 +199,27 @@ def test_multiclass_boosting_empty_data_raises():
     model = MultiClassNewtonBoosting(loss=loss, n_classes=3)
     with pytest.raises(ValueError):
         model.fit(np.empty((0, 2)), np.array([], dtype=int))
+
+
+def test_multiclass_history_keys_match_scalar_engine(synthetic_multiclass):
+    """Multi-class and scalar engines log the same history keys in the same order.
+
+    Ensures the template-method refactor did not drift the multi-class
+    bookkeeping from the scalar loop.
+    """
+    x, y, n_classes = synthetic_multiclass
+    scalar = VanillaNewtonBoosting(
+        loss=MSELoss(), n_estimators=3, max_depth=2, lam_base=0.0
+    )
+    scalar.fit(x, y.astype(float))
+    multi = MultiClassNewtonBoosting(
+        loss=CategoricalCrossEntropyLoss(n_classes=n_classes),
+        n_estimators=3,
+        max_depth=2,
+        lam_base=0.0,
+        n_classes=n_classes,
+    )
+    multi.fit(x, y)
+    assert scalar.history.keys() == multi.history.keys()
+    assert scalar.history.get("lambda_k")
+    assert multi.history.get("lambda_k")

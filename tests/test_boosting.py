@@ -275,9 +275,9 @@ def test_grn_converges_on_charbonnier(synthetic_regression):
     )
     model.fit(x, y)
     losses = model.history.get("loss")
-    assert losses[-1] < losses[0], (
-        f"GRN expected to decrease loss; got {losses[0]:.4f} -> {losses[-1]:.4f}"
-    )
+    assert (
+        losses[-1] < losses[0]
+    ), f"GRN expected to decrease loss; got {losses[0]:.4f} -> {losses[-1]:.4f}"
 
 
 def test_static_high_lambda_biased_vs_grn(synthetic_regression):
@@ -299,9 +299,7 @@ def test_static_high_lambda_biased_vs_grn(synthetic_regression):
         lam_base=10.0,
     )
     static.fit(x, y)
-    assert (
-        static.history.get("loss")[-1] > grn.history.get("loss")[-1]
-    ), (
+    assert static.history.get("loss")[-1] > grn.history.get("loss")[-1], (
         f"Static high lam should plateau above GRN; "
         f"static={static.history.get('loss')[-1]:.4f}, "
         f"grn={grn.history.get('loss')[-1]:.4f}"
