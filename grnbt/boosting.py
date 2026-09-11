@@ -608,25 +608,29 @@ class MultiClassNewtonBoosting(BaseBoosting):
         return np.asarray(exp_z / np.sum(exp_z, axis=1, keepdims=True), dtype=float)
 
     def extract_hessian_diagonal(self, h: np.ndarray) -> np.ndarray:
-        """Extract the diagonal of a (possibly block) Hessian.
+        """Extract the diagonal of a 3-D block Hessian.
 
-        For scalar Hessians (i.e. when ``n_classes == 1``) the input is
-        already 2-D and is returned unchanged. For multi-class losses
-        the Hessian is a block-diagonal ``(N, K, K)`` operator and the
-        diagonal is consumed by the tree builder.
+        ``MultiClassNewtonBoosting`` only operates with ``n_classes >= 2``
+        (enforced in :meth:`__init__`), so the Hessian is always the
+        block-diagonal ``(N, K, K)`` operator returned by
+        :meth:`CategoricalCrossEntropyLoss.hessian`.
 
         Args:
-            h: Hessian array of shape ``(n_samples, n_classes)`` or
-                ``(n_samples, n_classes, n_classes)``.
+            h: Hessian tensor of shape ``(n_samples, n_classes, n_classes)``.
 
         Returns:
             Per-sample diagonal of shape ``(n_samples, n_classes)``.
+
+        Raises:
+            ValueError: If ``h`` is not a 3-D tensor — the only valid
+                input shape for this multi-class engine.
         """
-        if h.ndim == 2:
-            return h
-        if h.ndim == 3:
-            return np.asarray(np.diagonal(h, axis1=1, axis2=2), dtype=float)
-        raise ValueError(f"Unexpected Hessian shape: {h.shape}")
+        if h.ndim != 3:
+            raise ValueError(
+                f"MultiClassNewtonBoosting requires a 3-D Hessian "
+                f"(N, K, K); got {h.shape}"
+            )
+        return np.asarray(np.diagonal(h, axis1=1, axis2=2), dtype=float)
 
     def compute_lambda_for_multiclass(
         self, grad_norm: float, h_diag: np.ndarray, n: int
