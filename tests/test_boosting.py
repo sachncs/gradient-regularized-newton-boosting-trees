@@ -234,3 +234,75 @@ def test_grn_lambda_uses_empirical_rms_norm(synthetic_regression):
         grad_norm, np.linalg.norm(model.loss.gradient(y, model.F0)) / np.sqrt(64)
     )
     assert np.isclose(lam**2, 8.0 * grad_norm)
+
+
+def test_vanilla_diverges_on_charbonnier(synthetic_regression):
+    """Vanilla Newton diverges on Charbonnier with lam_base=0 and eta=1.
+
+    Paper Section 6, Figure 1 headline claim. Without the adaptive GRN
+    term, the loss grows roughly exponentially; we assert it grew by
+    at least 10x over 20 iterations.
+    """
+    x, y = synthetic_regression
+    model = VanillaNewtonBoosting(
+        loss=CharbonnierLoss(),
+        n_estimators=20,
+        learning_rate=1.0,
+        max_depth=4,
+        lam_base=0.0,
+    )
+    model.fit(x, y)
+    losses = model.history.get("loss")
+    assert losses[-1] > losses[0] * 10, (
+        f"Vanilla Newton expected to diverge; got "
+        f"{losses[0]:.4f} -> {losses[-1]:.4f}"
+    )
+
+
+def test_grn_converges_on_charbonnier(synthetic_regression):
+    """GRN converges (loss decreases) on Charbonnier with lam_base=0.
+
+    Counterpart to test_vanilla_diverges_on_charbonnier; the same loss
+    function should converge when the adaptive lambda is added.
+    """
+    x, y = synthetic_regression
+    model = GradientRegularizedNewtonBoosting(
+        loss=CharbonnierLoss(),
+        n_estimators=20,
+        learning_rate=1.0,
+        max_depth=4,
+        lam_base=0.0,
+    )
+    model.fit(x, y)
+    losses = model.history.get("loss")
+    assert losses[-1] < losses[0], (
+        f"GRN expected to decrease loss; got {losses[0]:.4f} -> {losses[-1]:.4f}"
+    )
+
+
+def test_static_high_lambda_biased_vs_grn(synthetic_regression):
+    """Static high lam_base plateaus above the GRN limit."""
+    x, y = synthetic_regression
+    grn = GradientRegularizedNewtonBoosting(
+        loss=CharbonnierLoss(),
+        n_estimators=20,
+        learning_rate=1.0,
+        max_depth=4,
+        lam_base=0.0,
+    )
+    grn.fit(x, y)
+    static = VanillaNewtonBoosting(
+        loss=CharbonnierLoss(),
+        n_estimators=20,
+        learning_rate=1.0,
+        max_depth=4,
+        lam_base=10.0,
+    )
+    static.fit(x, y)
+    assert (
+        static.history.get("loss")[-1] > grn.history.get("loss")[-1]
+    ), (
+        f"Static high lam should plateau above GRN; "
+        f"static={static.history.get('loss')[-1]:.4f}, "
+        f"grn={grn.history.get('loss')[-1]:.4f}"
+    )
