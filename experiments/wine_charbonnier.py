@@ -98,7 +98,11 @@ def main() -> None:
         plt.savefig("experiments/wine_charbonnier.png")
         print("Saved plot to experiments/wine_charbonnier.png")
     except ImportError:
-        pass
+        print(
+            "matplotlib not installed; skipping plot. "
+            "Install with `pip install matplotlib` to enable. "
+            "The .npz result file was still written."
+        )
 
 
 if __name__ == "__main__":

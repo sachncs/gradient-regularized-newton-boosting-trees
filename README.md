@@ -212,6 +212,13 @@ empirical RMS norm ``||g_k|| / √N`` matching the paper's notation:
 
 ## Reproducible Experiments
 
+**Note:** Running the experiment scripts requires `scikit-learn` (for
+the dataset loaders) and `matplotlib` (for the loss-curve plot in
+`wine_charbonnier.py`). Both are included in the `[dev]` extras;
+install with `pip install -e ".[dev]"`. The `.npz` result file is
+written regardless of whether matplotlib is installed; without it the
+plot is skipped with a one-line message instead of failing.
+
 ```bash
 # Wine Quality — Charbonnier Loss (Figure 1)
 python experiments/wine_charbonnier.py
