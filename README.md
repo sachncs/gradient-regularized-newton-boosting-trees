@@ -6,7 +6,6 @@
     <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="License"></a>
     <a href="https://github.com/sachncs/gradient-regularized-newton-boosting-trees/actions"><img src="https://img.shields.io/github/actions/workflow/status/sachncs/gradient-regularized-newton-boosting-trees/ci.yml?branch=master" alt="CI"></a>
     <a href="https://codecov.io/gh/sachncs/gradient-regularized-newton-boosting-trees"><img src="https://codecov.io/gh/sachncs/gradient-regularized-newton-boosting-trees/branch/master/graph/badge.svg" alt="codecov"></a>
-    <a href="https://pypi.org/project/grnbt/"><img src="https://img.shields.io/pypi/v/grnbt.svg" alt="PyPI"></a>
     <a href="https://github.com/sachncs/gradient-regularized-newton-boosting-trees/stargazers"><img src="https://img.shields.io/github/stars/sachncs/gradient-regularized-newton-boosting-trees" alt="Stars"></a>
     <a href="https://mypy-lang.org/"><img src="https://img.shields.io/badge/mypy-strict-green.svg" alt="Checked with mypy"></a>
   </p>
