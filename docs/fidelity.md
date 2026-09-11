@@ -88,26 +88,30 @@ They are deliberately excluded from `grnbt/__init__.py` and the baseline tests.
 
 ## E. Numerical Verification Status
 
-| Claim | Verification Method | Status |
-|-------|---------------------|--------|
-| Lemma 4.2 (i) `λ ||f|| <= ||g||` | `tests/test_diagnostics.py` | ✅ Pass |
-| Lemma 4.2 (ii) `||f||²_K = -<g,f>` | `tests/test_diagnostics.py` | ✅ Pass |
-| `Θ_k ∈ [0, 1]` for exact step | `tests/test_diagnostics.py` | ✅ Pass |
-| `γ_k ∈ [0, 1]` for exact step | `tests/test_diagnostics.py` | ✅ Pass |
-| MSE loss decreases with small η | `tests/test_boosting.py` | ✅ Pass |
-| Charbonnier `M_0 = 1` | `tests/test_losses.py` | ✅ Pass |
-| BCE `M_0 = 1/4` | `tests/test_losses.py` | ✅ Pass |
-| Tree leaf weight = closed form | `tests/test_tree.py` | ✅ Pass |
-| Tree respects `max_depth` | `tests/test_tree.py` | ✅ Pass |
-| Tree gain monotonicity with depth | `tests/test_tree.py` | ✅ Pass |
-| BCE Hessian > 0 | `tests/test_losses.py` | ✅ Pass |
-| CCE gradient sums to zero | `tests/test_losses.py` | ✅ Pass |
-| CCE Hessian symmetric | `tests/test_losses.py` | ✅ Pass |
-| GRN adaptive λ increases | `tests/test_boosting.py` | ✅ Pass |
-| GRN MSE adaptive λ = 0 | `tests/test_boosting.py` | ✅ Pass |
-| History logs finite values | `tests/test_utils.py` | ✅ Pass |
-| Datasets load with valid shapes | `tests/test_datasets.py` | ✅ Pass |
+| Claim | Verification Method | Tolerance | Status |
+|-------|---------------------|-----------|--------|
+| Lemma 4.2 (i) `λ ||f|| <= ||g||` | `tests/test_diagnostics.py::test_lemma_4_2_identities` | `1e-6` | ✅ Pass |
+| Lemma 4.2 (ii) `||f||²_K = -<g,f>` | `tests/test_diagnostics.py::test_lemma_4_2_identities` | `1e-5` | ✅ Pass |
+| `Θ_k ∈ [0, 1]` for exact step | `tests/test_diagnostics.py::test_cosine_angle_perfect_alignment` | `1e-12` | ✅ Pass |
+| `γ_k ∈ [0, 1]` for exact step | `tests/test_diagnostics.py::test_weak_gradient_edge_perfect` | `1e-12` | ✅ Pass |
+| MSE loss decreases | `tests/test_boosting.py::test_loss_decreases_for_strongly_convex` | strict `<` | ✅ Pass |
+| Charbonnier `M_0 = 1` | `tests/test_losses.py::test_hessian_lipschitz_constants` | exact `==` | ✅ Pass |
+| BCE `M_0 = 1/4` | `tests/test_losses.py::test_hessian_lipschitz_constants` | exact `==` | ✅ Pass |
+| Tree leaf weight = closed form | `tests/test_tree.py::test_leaf_weight_closed_form` | `1e-9` | ✅ Pass |
+| Tree respects `max_depth` | `tests/test_tree.py::test_respects_max_depth` | exact `==` | ✅ Pass |
+| Tree gain monotonicity with depth | `tests/test_tree.py::test_gain_monotonic_with_depth` | `1e-9` | ✅ Pass |
+| BCE Hessian > 0 | `tests/test_losses.py::test_bce_hessian_positive` | strict `>` | ✅ Pass |
+| CCE gradient sums to zero | `tests/test_losses.py::test_cce_gradient_sums_to_zero` | `1e-12` | ✅ Pass |
+| CCE Hessian symmetric | `tests/test_losses.py::test_cce_hessian_symmetric` | `1e-12` | ✅ Pass |
+| GRN adaptive λ increases | `tests/test_boosting.py::test_grn_adaptive_lambda_increases` | strict `>` | ✅ Pass |
+| GRN MSE adaptive λ = 0 | `tests/test_boosting.py::test_boosting_grn_lam_base_zero_mse` | `1e-9` | ✅ Pass |
+| Vanilla diverges on Charbonnier | `tests/test_boosting.py::test_vanilla_diverges_on_charbonnier` | ratio `>10` | ✅ Pass |
+| GRN converges on Charbonnier | `tests/test_boosting.py::test_grn_converges_on_charbonnier` | strict `<` | ✅ Pass |
+| History logs finite values | `tests/test_utils.py::test_history_non_finite_raises` | exact `==` | ✅ Pass |
+| Datasets load with valid shapes | `tests/test_datasets.py::test_wine_quality_shape` | exact `==` | ✅ Pass |
 
 ---
 
-*Report generated: 2026-05-06*
+*Tolerance column gives the numerical bound the test uses. Status is
+re-validated by `pytest tests/` on every CI run; this table is regenerated
+in step with the test suite, not the 0.1.0 release date.*
