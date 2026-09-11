@@ -156,6 +156,14 @@ class History:
         """Initialize empty history."""
         self.data: dict[str, list[float]] = {}
 
+    def __repr__(self) -> str:
+        """Return a debug-friendly representation of recorded keys and lengths."""
+        return (
+            "History("
+            + ", ".join(f"{k!r}: {len(v)}" for k, v in sorted(self.data.items()))
+            + ")"
+        )
+
     def log(self, key: str, value: float) -> None:
         """Append a scalar value to a named series.
 

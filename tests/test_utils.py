@@ -146,3 +146,14 @@ def test_history_as_dict():
     # Mutating the dict should not affect history
     d["x"].append(3.0)
     assert hist.get("x") == [1.0, 2.0]
+
+
+def test_history_repr_shows_keys_and_counts():
+    """History.__repr__ includes each logged key with its length."""
+    h = History()
+    assert repr(h) == "History()"
+    h.log("loss", 1.0)
+    h.log("loss", 0.5)
+    h.log("lambda_k", 0.1)
+    assert "'loss': 2" in repr(h)
+    assert "'lambda_k': 1" in repr(h)

@@ -36,8 +36,8 @@ array([-1. ,  2. , -0.5])
 1.0
 """
 
-from typing import Dict
 import warnings
+from typing import Dict
 
 import numpy as np
 

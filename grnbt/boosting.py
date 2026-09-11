@@ -150,6 +150,17 @@ class BaseBoosting:
         self.F0: Optional[np.ndarray] = None
         self.history = History()
 
+    def __repr__(self) -> str:
+        """Return a debug-friendly representation showing key hyperparameters."""
+        return (
+            f"{type(self).__name__}(loss={self.loss!r}, "
+            f"n_estimators={self.n_estimators}, "
+            f"learning_rate={self.learning_rate:g}, "
+            f"max_depth={self.max_depth}, "
+            f"lam_base={self.lam_base:g}, "
+            f"fitted={self.F0 is not None})"
+        )
+
     def fit(self, x: np.ndarray, y: np.ndarray) -> "BaseBoosting":
         """Fit the scalar-output boosting ensemble.
 
@@ -473,6 +484,19 @@ class MultiClassNewtonBoosting(BaseBoosting):
         # can be specialized in subclasses without raising
         # ``assignment`` errors, no ``# type: ignore`` is needed here.
         self.trees: list[MultiClassNewtonTree] = []
+
+    def __repr__(self) -> str:
+        """Return a debug-friendly representation including ``n_classes``."""
+        return (
+            f"MultiClassNewtonBoosting(loss={self.loss!r}, "
+            f"n_classes={self.n_classes}, "
+            f"n_estimators={self.n_estimators}, "
+            f"learning_rate={self.learning_rate:g}, "
+            f"max_depth={self.max_depth}, "
+            f"lam_base={self.lam_base:g}, "
+            f"softmax_output={self.softmax_output}, "
+            f"fitted={self.F0 is not None})"
+        )
 
     def fit(self, x: np.ndarray, y: np.ndarray) -> "MultiClassNewtonBoosting":
         """Fit the multi-class boosting ensemble.

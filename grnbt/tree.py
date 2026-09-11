@@ -106,6 +106,12 @@ class Node:
         self.left: Optional["Node"] = None
         self.right: Optional["Node"] = None
 
+    def __repr__(self) -> str:
+        """Return a debug-friendly representation of this node."""
+        if self.is_leaf:
+            return f"Node(leaf, weight={self.weight:g})"
+        return f"Node(split, feature={self.feature_idx}, threshold={self.threshold:g})"
+
 
 class NewtonTree:
     """Decision tree weak learner optimized for Newton boosting.
@@ -234,6 +240,14 @@ class NewtonTree:
         for i in range(x.shape[0]):
             out[i] = self.predict_one(self.root, x[i])
         return out
+
+    def __repr__(self) -> str:
+        """Return a debug-friendly representation of the tree config."""
+        return (
+            f"{type(self).__name__}(max_depth={self.max_depth}, "
+            f"min_samples_leaf={self.min_samples_leaf}, "
+            f"min_gain={self.min_gain:g}, fitted={self.root is not None})"
+        )
 
     def predict_one(self, node: Node, sample: np.ndarray) -> float:
         """Traverse the tree for a single sample.
@@ -440,6 +454,15 @@ class MultiClassNode:
         self.left: Optional["MultiClassNode"] = None
         self.right: Optional["MultiClassNode"] = None
 
+    def __repr__(self) -> str:
+        """Return a debug-friendly representation of this multi-class node."""
+        if self.is_leaf:
+            return "MultiClassNode(leaf)"
+        return (
+            f"MultiClassNode(split, feature={self.feature_idx}, "
+            f"threshold={self.threshold:g})"
+        )
+
 
 class MultiClassNewtonTree:
     """Decision tree weak learner for multi-class Newton boosting.
@@ -564,6 +587,15 @@ class MultiClassNewtonTree:
         for i in range(x.shape[0]):
             out[i] = self.predict_one(self.root, x[i])
         return out
+
+    def __repr__(self) -> str:
+        """Return a debug-friendly representation of the tree config."""
+        return (
+            f"{type(self).__name__}(n_classes={self.n_classes}, "
+            f"max_depth={self.max_depth}, "
+            f"min_samples_leaf={self.min_samples_leaf}, "
+            f"min_gain={self.min_gain:g}, fitted={self.root is not None})"
+        )
 
     def predict_one(self, node: MultiClassNode, sample: np.ndarray) -> np.ndarray:
         """Traverse tree for a single sample, returning the K-dim weight vector."""
