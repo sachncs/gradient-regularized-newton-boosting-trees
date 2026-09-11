@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "grnbt"
 version = "0.1.0"
-description = "Gradient Regularized Newton Boosting Trees — Pure Python reproduction of arXiv:2605.00581v1"
+description = "Gradient Regularized Newton Boosting Trees — Pure Python reproduction of Zozoulenko et al. (2026) preprint"
 readme = "README.md"
 license = {text = "MIT"}
 authors = [

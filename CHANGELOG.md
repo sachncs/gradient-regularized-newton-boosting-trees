@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Replaced unverified arXiv ID `2605.00581v1` with a `(preprint, id verification pending)`
+  placeholder across `README.md`, `pyproject.toml`, `CHANGELOG.md`, `docs/fidelity.md`,
+  `docs/math.md`, `grnbt/__init__.py`, and `grnbt/losses.py`. The cited id could not be
+  verified against arXiv.org from this audit; once the correct id is confirmed, update
+  all eight locations in a single follow-up commit.
+
+## [0.1.0] - 2026-05-06
+
 ### Added
 
 - Comprehensive usage examples in docstrings for boosting engines (`VanillaNewtonBoosting`, `GradientRegularizedNewtonBoosting`), losses (`MSELoss`), and utilities (`empirical_norm`, `History`)
@@ -42,7 +52,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Initial release of GRNBT (Gradient Regularized Newton Boosting Trees)
-- Pure Python reproduction of arXiv:2605.00581v1
+- Pure Python reproduction of Zozoulenko et al. (2026) preprint
 - Four loss functions: MSE, Charbonnier, BCE, CCE with analytical M_0 constants
 - NewtonTree weak learner with exact greedy split finding
 - Vanilla Newton Boosting engine with static L2 regularization

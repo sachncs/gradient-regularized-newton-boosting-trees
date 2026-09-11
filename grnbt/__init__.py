@@ -4,7 +4,7 @@ Pure-Python reproduction of:
 
     Zozoulenko, N., Falkowski, D., Cass, T., Gonon, L. (2026).
     *Gradient Regularized Newton Boosting Trees with Global Convergence.*
-    arXiv:2605.00581v1.
+    arXiv preprint (placeholder, verification pending).
 
 The package contains a faithful, dependency-light implementation of
 the paper's two boosting algorithms (vanilla Newton boosting, gradient
@@ -50,9 +50,9 @@ Package layout
 References
 ----------
 
-Paper: arXiv:2605.00581v1 (Sections 4–6 for algorithms and diagnostics,
-Appendix A for ``M_0`` derivations, Proposition 5.1 for empirical
-Hessian Lipschitz scaling).
+Paper: Zozoulenko et al. (2026), preprint (Sections 4–6 for algorithms and
+diagnostics, Appendix A for ``M_0`` derivations, Proposition 5.1 for
+empirical Hessian Lipschitz scaling).
 """
 
 from grnbt.boosting import (

@@ -15,7 +15,7 @@
 
 > N. Zozoulenko, D. Falkowski, T. Cass, L. Gonon,
 > *Gradient Regularized Newton Boosting Trees with Global Convergence*,
-> [arXiv:2605.00581v1](https://arxiv.org/abs/2605.00581v1)
+> preprint (arXiv id verification pending).
 
 It implements both **Vanilla Restricted Newton Boosting** (Algorithm 1)
 and **Gradient Regularized Newton Boosting** (Algorithm 2) with a
@@ -452,7 +452,7 @@ If you use this software in your research, please cite:
 @article{zozoulenko2026grnbt,
   title  = {Gradient Regularized Newton Boosting Trees with Global Convergence},
   author = {Zozoulenko, Nikita and Falkowski, Daniel and Cass, Thomas and Gonon, Lucien},
-  journal = {arXiv preprint arXiv:2605.00581v1},
+  journal = {Preprint (arXiv id verification pending)},
   year   = {2026}
 }
 ```

@@ -2,7 +2,7 @@
 
 **Paper:** Gradient Regularized Newton Boosting Trees with Global Convergence  
 **Authors:** Nikita Zozoulenko, Daniel Falkowski, Thomas Cass, Lukas Gonon  
-**arXiv:** 2605.00581v1
+**arXiv:** (preprint, id verification pending)
 
 ---
 
