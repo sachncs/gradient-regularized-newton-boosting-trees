@@ -12,7 +12,7 @@
 |-----------------|----------------------|----------|
 | **Algorithm 1** — Vanilla Restricted Newton Descent | **Exact** | `grnbt/boosting.py` (`VanillaNewtonBoosting`) |
 | **Algorithm 2** — Gradient Regularized Restricted Newton | **Exact** | `grnbt/boosting.py` (`GradientRegularizedNewtonBoosting`) |
-| Adaptive regularization `λ_k = λ_base + sqrt(M ||g_k||)` | **Exact** | `boosting.py:compute_lambda` |
+| Adaptive regularization `λ_k = λ_base + sqrt(M ‖g_k‖_H)` with empirical-RMS norm `‖g_k‖_H = ‖g_k‖ / √N` | **Exact** | `boosting.py:compute_lambda` |
 | Proposition 5.1 — `M = M_0 sqrt(N)` scaling | **Exact** | `losses.py:empirical_risk_lipschitz` |
 | **Loss gradients & Hessians** (Appendix A) | **Exact** | `grnbt/losses.py` |
 | — MSE | Exact | `MSELoss` |

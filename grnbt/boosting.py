@@ -47,7 +47,7 @@ import numpy as np
 
 from grnbt.losses import Loss
 from grnbt.tree import MultiClassNewtonTree, NewtonTree
-from grnbt.utils import History
+from grnbt.utils import History, empirical_norm
 
 
 class BaseBoosting:
@@ -214,7 +214,7 @@ class BaseBoosting:
             loss_val = self.loss.loss(y, f_current)
             self.history.log("loss", loss_val)
             self.history.log("lambda_k", lam_k)
-            self.history.log("grad_norm", float(np.linalg.norm(g)))
+            self.history.log("grad_norm", empirical_norm(g))
             if self.verbose and k % 10 == 0:
                 print(f"Iter {k}: loss={loss_val:.6f} lambda={lam_k:.6f}")
         return self
@@ -395,18 +395,23 @@ class GradientRegularizedNewtonBoosting(BaseBoosting):
     def compute_lambda(self, g: np.ndarray, h: np.ndarray, n: int) -> float:
         """Compute the adaptive ``λ_k`` from Proposition 5.1.
 
+        The adaptive term is ``sqrt(M * ||g_k||_H)`` where the norm is
+        the **empirical** L² (RMS) norm ``||g|| / sqrt(N)`` — matching
+        the paper's notation. ``M = M_0 * sqrt(N)`` from Proposition 5.1
+        scales the empirical-risk Hessian Lipschitz constant.
+
         Args:
             g: Gradient vector at iterate ``F_k``. Used for its norm.
             h: Hessian vector (unused; kept for API symmetry).
             n: Number of training samples.
 
         Returns:
-            ``λ_k = λ_base + sqrt(M * ||g||)`` with ``M = M_0 * sqrt(N)``.
+            ``λ_k = λ_base + sqrt(M * ||g||_H)`` with ``M = M_0 * sqrt(N)``.
             A Python float.
         """
         del h  # Hessian not needed for λ_k computation.
         m = self.loss.empirical_risk_lipschitz(n)
-        grad_norm = float(np.linalg.norm(g))
+        grad_norm = empirical_norm(g)
         lam_adaptive = np.sqrt(m * grad_norm)
         return float(self.lam_base + lam_adaptive)
 
@@ -555,7 +560,7 @@ class MultiClassNewtonBoosting(BaseBoosting):
             loss_val = self.loss.loss(y, f_current)
             self.history.log("loss", loss_val)
             self.history.log("lambda_k", lam_k)
-            self.history.log("grad_norm", g_norm)
+            self.history.log("grad_norm", empirical_norm(g))
             if self.verbose and k % 10 == 0:
                 print(f"Iter {k}: loss={loss_val:.6f} lambda={lam_k:.6f}")
         return self
@@ -661,8 +666,14 @@ class MultiClassNewtonBoosting(BaseBoosting):
     ) -> float:
         """Compute ``λ_k`` for the multi-class iteration.
 
+        The adaptive term uses the **empirical** L² (RMS) norm of the
+        gradient matrix ``||g||_F / sqrt(N)`` — matching the paper's
+        notation. The caller already passes the Frobenius norm via
+        ``grad_norm``; we rescale it by ``1/sqrt(N)`` here to convert to
+        the empirical-RMS convention used throughout the codebase.
+
         Args:
-            grad_norm: Frobenius norm ``||g_k||`` over the
+            grad_norm: Frobenius norm ``||g_k||_F`` over the
                 ``(n, K)`` gradient matrix.
             h_diag: Per-class diagonal Hessian, shape ``(n, K)``.
                 Currently unused; kept for future variants that scale
@@ -670,12 +681,13 @@ class MultiClassNewtonBoosting(BaseBoosting):
             n: Number of samples.
 
         Returns:
-            ``λ_k = λ_base + sqrt(M * ||g||)`` where
+            ``λ_k = λ_base + sqrt(M * ||g||_H)`` where
             ``M = M_0 * sqrt(N)`` per Proposition 5.1.
         """
         del h_diag  # Unused; kept for API symmetry with single-class compute_lambda.
         m = self.loss.empirical_risk_lipschitz(n)
-        lam_adaptive = np.sqrt(m * grad_norm)
+        empirical_grad_norm = grad_norm / np.sqrt(n)
+        lam_adaptive = np.sqrt(m * empirical_grad_norm)
         return float(self.lam_base + lam_adaptive)
 
     def validate_multiclass_labels(self, y: np.ndarray) -> None:

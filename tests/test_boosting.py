@@ -208,3 +208,29 @@ def test_boosting_repr_shows_class_name_and_key_params():
     grn = GradientRegularizedNewtonBoosting(loss=CharbonnierLoss(), n_estimators=3)
     assert "GradientRegularizedNewtonBoosting" in repr(grn)
     assert "loss=CharbonnierLoss" in repr(grn)
+
+
+def test_grn_lambda_uses_empirical_rms_norm(synthetic_regression):
+    """GRN's adaptive term uses empirical-RMS norm, not standard L2.
+
+    With g = [3, 4] and N = 2, standard L2 = 5 and RMS = 5/sqrt(2).
+    For Charbonnier (M_0 = 1), N = 64, M = sqrt(64) = 8, the adaptive
+    term should be sqrt(8 * 5/sqrt(2)) ≈ 3.76, NOT sqrt(8 * 5) ≈ 6.32.
+    """
+    x, y = synthetic_regression
+    model = GradientRegularizedNewtonBoosting(
+        loss=CharbonnierLoss(),
+        n_estimators=1,
+        learning_rate=1.0,
+        max_depth=1,
+        lam_base=0.0,
+    )
+    model.fit(x, y)
+    # n = 64, lam = sqrt(M * ||g||_H) = sqrt(8 * ||g|| / 8) = sqrt(||g||).
+    # Pull the recorded lambda and back out the gradient norm.
+    lam = model.history.get("lambda_k")[0]
+    grad_norm = model.history.get("grad_norm")[0]
+    assert np.isclose(
+        grad_norm, np.linalg.norm(model.loss.gradient(y, model.F0)) / np.sqrt(64)
+    )
+    assert np.isclose(lam**2, 8.0 * grad_norm)

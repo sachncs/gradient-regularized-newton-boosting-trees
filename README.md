@@ -30,8 +30,9 @@ making it ideal as a faithful, transparent reference implementation.
 
 - **Vanilla Newton Boosting** — Static ``λ_k = λ_base`` second-order GBDT, Algorithm 1.
 - **Gradient Regularized Newton Boosting (GRN)** — Adaptive
-  ``λ_k = λ_base + sqrt(M · ||g_k||)`` with ``M = M_0 · √N``
-  (Proposition 5.1); achieves the paper's ``O(1/k²)`` global rate.
+  ``λ_k = λ_base + sqrt(M · ||g_k||_H)`` with ``M = M_0 · √N``
+  (Proposition 5.1); the gradient norm is the empirical RMS
+  ``||g_k|| / √N``, matching the paper's notation.
 - **Multi-Class Boosting** — ``K``-class softmax output with
   vector-valued tree leaves and shared split structure across classes.
 - **Four Loss Functions** — MSE, Charbonnier, Binary Cross-Entropy,
@@ -189,8 +190,9 @@ for k, tree in enumerate(model.trees):
 
 ### Adaptive Regularization (GRN only)
 
-GRN adds ``sqrt(M · ||g_k||)`` to ``λ_base``, where ``M = M_0 · √N``
-and ``M_0`` is supplied by the loss (Appendix A):
+GRN adds ``sqrt(M · ||g_k||_H)`` to ``λ_base``, where ``M = M_0 · √N``,
+``M_0`` is supplied by the loss (Appendix A), and ``||g_k||_H`` is the
+empirical RMS norm ``||g_k|| / √N`` matching the paper's notation:
 
 | Loss                          | ``M_0`` |
 |-------------------------------|---------|
@@ -375,7 +377,8 @@ This codebase is a **byte-faithful** reproduction of the paper's formulas
 2. **Exact Newton gain** — `½[ (G_L)²/(H_L+λ) + (G_R)²/(H_R+λ) - (G)²/(H+λ) ]`
    used for greedy split selection.
 3. **Adaptive ``λ_k`` (Proposition 5.1)** —
-   ``λ_k = λ_base + sqrt(M · ||g_k||)`` with ``M = M_0 · √N``.
+    ``λ_k = λ_base + sqrt(M · ||g_k||_H)`` with ``M = M_0 · √N`` and
+    ``||g_k||_H = ||g_k|| / √N`` (empirical RMS norm).
 4. **Lemma 4.2 identities** — Both ``λ ||f|| ≤ ||g||`` and
    ``||f||²_K = -⟨g, f⟩`` are numerically checked by
    `verify_lemma_4_2`.
