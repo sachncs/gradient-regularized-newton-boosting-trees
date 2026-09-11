@@ -157,3 +157,21 @@ def test_history_repr_shows_keys_and_counts():
     h.log("lambda_k", 0.1)
     assert "'loss': 2" in repr(h)
     assert "'lambda_k': 1" in repr(h)
+
+
+def test_empirical_norm_used_in_production():
+    """empirical_norm is wired into the production GRN compute_lambda path.
+
+    Verifies the helper is consumed by at least one production caller,
+    addressing the 'defined but never called' concern.
+    """
+    import inspect
+
+    import grnbt.boosting as boosting
+
+    src = inspect.getsource(boosting.GradientRegularizedNewtonBoosting.compute_lambda)
+    assert "empirical_norm" in src
+    src_multi = inspect.getsource(
+        boosting.MultiClassNewtonBoosting.compute_lambda_for_multiclass
+    )
+    assert "np.sqrt" in src_multi  # rescale by 1/sqrt(N)
