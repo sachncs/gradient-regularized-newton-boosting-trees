@@ -674,10 +674,14 @@ class MultiClassNewtonBoosting(BaseBoosting):
 
         In addition to the standard checks, ``y`` is validated to be
         integer-typed (since :class:`CategoricalCrossEntropyLoss`
-        consumes integer class labels).
+        consumes integer class labels). The integer-dtype check fires
+        before the NaN check so that mis-typed labels (e.g. ``float``
+        labels) are reported from this method rather than from the
+        deferred check in :meth:`validate_multiclass_labels`.
 
         Raises:
-            TypeError: If either input is not a NumPy array.
+            TypeError: If either input is not a NumPy array, or if
+                ``y`` is not integer-typed.
             ValueError: On rank mismatch (``x`` 2-D, ``y`` 1-D),
                 inconsistent sample counts, empty data, zero features,
                 or non-finite values.
@@ -696,7 +700,9 @@ class MultiClassNewtonBoosting(BaseBoosting):
             raise ValueError("Cannot fit on empty data (n_samples = 0).")
         if x.shape[1] == 0:
             raise ValueError("Cannot fit on data with zero features (n_features = 0).")
-        if np.any(np.isnan(x)) or np.any(np.isnan(y.astype(float))):
+        if not np.issubdtype(y.dtype, np.integer):
+            raise TypeError(f"y must be integer typed for multi-class, got {y.dtype}")
+        if np.any(np.isnan(x)) or np.any(np.isnan(y)):
             raise ValueError("Inputs contain NaN values.")
         if np.any(np.isinf(x)):
             raise ValueError("Inputs contain infinite values.")
