@@ -76,3 +76,40 @@ def test_higgs_invalid_n_samples():
         load_higgs_subset(n_samples=0)
     with pytest.raises(ValueError):
         load_higgs_subset(n_samples=-1)
+
+
+def test_load_wine_quality_local_path(tmp_path):
+    """load_wine_quality accepts a pre-downloaded CSV via local_path."""
+    import numpy as np
+    from grnbt.datasets import load_wine_quality
+
+    csv_path = tmp_path / "wine.csv"
+    # 5 synthetic rows; UCI uses ';' separator; target is last column.
+    rows = ["f1;f2;f3;f4;f5;f6;f7;f8;f9;f10;f11;target"]
+    rng = np.random.RandomState(0)
+    for _ in range(5):
+        feats = ";".join(f"{v:.4f}" for v in rng.randn(11))
+        rows.append(f"{feats};{rng.randint(0, 11)}")
+    csv_path.write_text("\n".join(rows))
+
+    x, y = load_wine_quality(local_path=str(csv_path))
+    assert x.shape == (5, 11)
+    assert y.shape == (5,)
+    # Standardization sanity: mean ~ 0, std ~ 1 per column.
+    assert np.allclose(x.mean(axis=0), 0.0, atol=1e-6)
+
+
+def test_load_higgs_subset_local_path(tmp_path):
+    """load_higgs_subset accepts a pre-downloaded CSV via local_path."""
+    import numpy as np
+    from grnbt.datasets import load_higgs_subset
+
+    csv_path = tmp_path / "higgs.csv"
+    rng = np.random.RandomState(0)
+    arr = np.hstack([rng.randn(8, 28), rng.randint(0, 2, size=(8, 1)).astype(float)])
+    np.savetxt(csv_path, arr, delimiter=",")
+
+    x, y = load_higgs_subset(n_samples=8, local_path=str(csv_path))
+    assert x.shape == (8, 28)
+    assert y.shape == (8,)
+    assert set(np.unique(y).tolist()).issubset({0, 1})

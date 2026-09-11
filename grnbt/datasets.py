@@ -24,21 +24,31 @@ Notes
   before they silently corrupt downstream models.
 """
 
-from typing import Tuple
+from typing import Optional, Tuple
 
 import numpy as np
 
 
-def load_wine_quality() -> Tuple[np.ndarray, np.ndarray]:
+def load_wine_quality(
+    local_path: Optional[str] = None,
+) -> Tuple[np.ndarray, np.ndarray]:
     """Load the Wine Quality (red) regression dataset.
 
-    Tries ``sklearn.datasets.fetch_openml`` first, then a direct CSV
-    download from the UCI repository. **No** synthetic fallback is
-    provided because the dataset is small (~1.6k rows) and always
-    available; both sources are tried before raising.
+    Source priority:
+
+    1. ``local_path`` — read a pre-downloaded CSV file (use this for
+       offline / restricted environments).
+    2. ``sklearn.datasets.fetch_openml`` — preferred when sklearn is
+       installed.
+    3. Direct UCI CSV download.
+    4. Raise :class:`RuntimeError` if all three fail.
 
     Features are standardized to zero mean, unit variance. Targets are
     integer wine-quality scores in ``[0, 10]`` returned as ``float``.
+
+    Args:
+        local_path: Optional path to a local CSV in UCI format. The
+            file must use ';' as separator with a header row.
 
     Returns:
         Tuple ``(x, y)`` with ``x`` of shape ``(n_samples, n_features)``
@@ -53,21 +63,35 @@ def load_wine_quality() -> Tuple[np.ndarray, np.ndarray]:
     y = None
     last_error = None
 
-    # Attempt 1: scikit-learn fetch_openml (preferred when sklearn is
+    # Attempt 1: explicit local CSV (offline / restricted environments).
+    if local_path is not None:
+        try:
+            with open(local_path, "r", encoding="utf-8") as f:
+                lines = [ln for ln in f.read().strip().split("\n") if ln]
+            rows = [line.split(";") for line in lines[1:]]
+            arr = np.array(rows, dtype=float)
+            x = arr[:, :-1]
+            y = arr[:, -1]
+            data_loaded = True
+        except Exception as exc:
+            last_error = exc
+
+    # Attempt 2: scikit-learn fetch_openml (preferred when sklearn is
     # installed).
-    try:
-        from sklearn.datasets import fetch_openml
+    if not data_loaded:
+        try:
+            from sklearn.datasets import fetch_openml
 
-        wine = fetch_openml(
-            name="wine-quality-red", version=1, as_frame=False, parser="auto"
-        )
-        x = wine.data.astype(float)
-        y = wine.target.astype(float)
-        data_loaded = True
-    except Exception as exc:
-        last_error = exc
+            wine = fetch_openml(
+                name="wine-quality-red", version=1, as_frame=False, parser="auto"
+            )
+            x = wine.data.astype(float)
+            y = wine.target.astype(float)
+            data_loaded = True
+        except Exception as exc:
+            last_error = exc
 
-    # Attempt 2: direct UCI CSV download (works without sklearn).
+    # Attempt 3: direct UCI CSV download (works without sklearn).
     if not data_loaded:
         try:
             import urllib.request
@@ -114,13 +138,19 @@ def load_wine_quality() -> Tuple[np.ndarray, np.ndarray]:
     return x, y
 
 
-def load_higgs_subset(n_samples: int = 100_000) -> Tuple[np.ndarray, np.ndarray]:
+def load_higgs_subset(
+    n_samples: int = 100_000,
+    local_path: Optional[str] = None,
+) -> Tuple[np.ndarray, np.ndarray]:
     """Load a subset of the Higgs boson binary classification dataset.
 
-    Tries ``sklearn.datasets.fetch_openml`` first; if that fails (no
-    sklearn, no network, etc.) it returns a *synthetic surrogate*
-    with matching dimensionality so downstream code can still run end
-    to end.
+    Source priority:
+
+    1. ``local_path`` — read a pre-downloaded CSV file (use this for
+       offline / restricted environments).
+    2. ``sklearn.datasets.fetch_openml`` — preferred when sklearn is
+       installed.
+    3. Synthetic surrogate with matching dimensionality.
 
     The subset size policy:
         * If the fetched dataset is larger than ``n_samples``, keep a
@@ -130,6 +160,8 @@ def load_higgs_subset(n_samples: int = 100_000) -> Tuple[np.ndarray, np.ndarray]
     Args:
         n_samples: Maximum number of samples to retain. Must be a
             positive integer.
+        local_path: Optional path to a local CSV with the Higgs 28
+            feature columns plus a label column.
 
     Returns:
         Tuple ``(x, y)`` where ``x.shape == (n_samples, 28)`` and
@@ -149,27 +181,39 @@ def load_higgs_subset(n_samples: int = 100_000) -> Tuple[np.ndarray, np.ndarray]
     y = None
     last_error = None
 
-    # Attempt 1: scikit-learn fetch_openml (preferred).
-    try:
-        from sklearn.datasets import fetch_openml
+    # Attempt 1: explicit local CSV (offline / restricted environments).
+    if local_path is not None:
+        try:
+            arr = np.loadtxt(local_path, delimiter=",", dtype=float)
+            x = arr[:, :-1]
+            y = arr[:, -1].astype(int)
+            data_loaded = True
+        except Exception as exc:
+            last_error = exc
 
-        higgs = fetch_openml(name="higgs", version=1, as_frame=False, parser="auto")
-        x = higgs.data.astype(float)
-        y = higgs.target.astype(int)
-        # OpenML sometimes stores labels in a 2-D column matrix.
-        if y.ndim > 1:
-            y = y.ravel()
-        # Deterministic subsampling so that experiments are reproducible.
-        if x.shape[0] > n_samples:
-            rng = np.random.RandomState(42)
-            idx = rng.choice(x.shape[0], n_samples, replace=False)
-            x = x[idx]
-            y = y[idx]
-        data_loaded = True
-    except Exception as exc:
-        last_error = exc
+    # Attempt 2: scikit-learn fetch_openml (preferred).
+    if not data_loaded:
+        try:
+            from sklearn.datasets import fetch_openml
 
-    # Attempt 2: synthetic surrogate with matching dimensionality.
+            higgs = fetch_openml(name="higgs", version=1, as_frame=False, parser="auto")
+            x = higgs.data.astype(float)
+            y = higgs.target.astype(int)
+            # OpenML sometimes stores labels in a 2-D column matrix.
+            if y.ndim > 1:
+                y = y.ravel()
+            data_loaded = True
+        except Exception as exc:
+            last_error = exc
+
+    # Attempt 3: deterministic subsampling once a source succeeded.
+    if data_loaded and x is not None and y is not None and x.shape[0] > n_samples:
+        rng = np.random.RandomState(42)
+        idx = rng.choice(x.shape[0], n_samples, replace=False)
+        x = x[idx]
+        y = y[idx]
+
+    # Attempt 4: synthetic surrogate with matching dimensionality.
     # Matches the *shape* contract only; not the *distribution*.
     if not data_loaded:
         rng = np.random.RandomState(42)
