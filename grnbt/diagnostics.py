@@ -37,6 +37,7 @@ array([-1. ,  2. , -0.5])
 """
 
 from typing import Dict
+import warnings
 
 import numpy as np
 
@@ -131,6 +132,8 @@ def cosine_angle_theta(
     h: np.ndarray,
     f_exact: np.ndarray,
     f_weak: np.ndarray,
+    *,
+    warn: bool = False,
 ) -> float:
     r"""Compute the cosine angle ``Θ_k`` in the ``H``-induced inner product.
 
@@ -152,6 +155,11 @@ def cosine_angle_theta(
         h: Hessian diagonal weights ``h_i``.
         f_exact: Exact Newton direction ``-g / (h + λ)``.
         f_weak: Weak learner direction ``tree.predict(x)``.
+        warn: If ``True``, emit a :class:`UserWarning` when the
+            ``H``-norm denominator collapses to zero so the caller
+            can distinguish a degenerate iteration from "perfect
+            alignment". Defaults to ``False`` to preserve the
+            silent-fallback contract.
 
     Returns:
         Cosine value in ``[-1, 1]``. Returns ``1.0`` if either direction
@@ -171,6 +179,12 @@ def cosine_angle_theta(
     den: float = float(np.sqrt(np.sum(h * f_exact**2) * np.sum(h * f_weak**2)))
     if den == 0.0:
         # Convention: zero directions align with everything (paper, §4).
+        if warn:
+            warnings.warn(
+                "cosine_angle_theta: at least one direction has zero H-norm; "
+                "returning 1.0 by paper convention (§4).",
+                stacklevel=2,
+            )
         return 1.0
     cos_val = num / den
     # Clip to [-1, 1] to absorb floating-point rounding outside the
@@ -184,6 +198,8 @@ def weak_gradient_edge_gamma(
     h: np.ndarray,
     lam: float,
     f_weak: np.ndarray,
+    *,
+    warn: bool = False,
 ) -> float:
     r"""Compute the weak gradient edge ``γ_k``.
 
@@ -206,6 +222,10 @@ def weak_gradient_edge_gamma(
         h: Hessian diagonal.
         lam: Regularization parameter ``λ_k``. Must be non-negative.
         f_weak: Weak learner direction.
+        warn: If ``True``, emit a :class:`UserWarning` when the gradient
+            ``L^2``-norm is exactly zero (the degenerate stationary-point
+            case where the function returns ``1.0`` by convention).
+            Defaults to ``False`` to preserve the silent-fallback contract.
 
     Returns:
         Edge value in ``[0, 1]``. Returns ``1.0`` if the gradient is
@@ -240,6 +260,12 @@ def weak_gradient_edge_gamma(
     diff_norm_sq: float = float(np.sum((g_weak - g) ** 2))
     g_norm_sq: float = float(np.sum(g**2))
     if g_norm_sq == 0.0:
+        if warn:
+            warnings.warn(
+                "weak_gradient_edge_gamma: gradient L^2-norm is zero; "
+                "returning 1.0 by convention (degenerate stationary point).",
+                stacklevel=2,
+            )
         # Perfect "contraction" trivially — already at a stationary point.
         return 1.0
     # γ^2 = 1 - ||g^w - g||^2 / ||g||^2; clip to [0, 1] to absorb
