@@ -21,8 +21,11 @@ It implements both **Vanilla Restricted Newton Boosting** (Algorithm 1)
 and **Gradient Regularized Newton Boosting** (Algorithm 2) with a
 multi-class extension, four analytic losses, a Newton tree weak learner,
 and Hilbert-space diagnostics for verifying the paper's identities.
-The package has **no framework dependencies** at runtime — only NumPy —
-making it ideal as a faithful, transparent reference implementation.
+The package has **no runtime dependencies beyond NumPy** — optional
+extras (`scikit-learn` for the dataset loaders, `matplotlib` for the
+experiment plots) are declared under ``[datasets]`` and ``[plot]`` and
+are only installed when explicitly requested, making it ideal as a
+faithful, transparent reference implementation.
 
 ---
 
@@ -419,6 +422,13 @@ This codebase is a **byte-faithful** reproduction of the paper's formulas
 | Testing         | [pytest](https://docs.pytest.org/) + pytest-cov |
 | Build           | setuptools (PEP 621)                         |
 | Pre-commit      | [pre-commit](https://pre-commit.com) hooks    |
+
+Scikit-learn and matplotlib are listed here because the
+``experiments/`` scripts and ``grnbt.datasets`` loaders depend on
+them. They are **NOT required at runtime**; install only what you
+need (the ``[dev]`` extras pull them in for convenience, the
+``[datasets]`` extra pulls scikit-learn only, and the ``[plot]``
+extra pulls matplotlib only).
 
 ---
 
