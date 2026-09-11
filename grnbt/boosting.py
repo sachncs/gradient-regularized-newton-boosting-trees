@@ -235,21 +235,12 @@ class BaseBoosting:
                 "Model has not been fitted yet. Call fit() before predict()."
             )
 
-        # When F0 was stored as a 0-D scalar (the ``init_prediction``
-        # default), use it directly. Otherwise it is an ``(n_train,)``
-        # array and we take its mean — the standard choice for
-        # non-constant baselines.
-        f_out: np.ndarray
-        if self.F0.ndim == 0:
-            # ``.item()`` extracts the underlying Python scalar, which
-            # is the type-safe equivalent of ``float(F0)`` for a 0-D
-            # ndarray and keeps mypy happy.
-            f_out = np.full(x.shape[0], self.F0.item(), dtype=float)
-        else:
-            # Use the mean of F0 as the constant baseline for new samples.
-            baseline = float(np.mean(self.F0))
-            f_out = np.full(x.shape[0], baseline, dtype=float)
-
+        # ``init_prediction`` always returns a 1-D array with the same
+        # shape as ``y``; its *mean* is used as the constant baseline for
+        # new samples. Subclasses overriding ``init_prediction`` must
+        # account for the fact that predict-time only consumes the mean.
+        baseline = float(np.mean(self.F0))
+        f_out: np.ndarray = np.full(x.shape[0], baseline, dtype=float)
         for tree in self.trees:
             f_out += self.learning_rate * tree.predict(x)
         return np.asarray(f_out, dtype=float)
