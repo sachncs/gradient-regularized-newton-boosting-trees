@@ -227,3 +227,27 @@ def test_loss_repr_includes_class_name_and_m0():
         CategoricalCrossEntropyLoss(n_classes=4)
     )
     assert "n_classes=4" in repr(CategoricalCrossEntropyLoss(n_classes=4))
+
+
+def test_cce_hessian_diagonal_matches_block_diagonal():
+    """hessian_diagonal must match np.diagonal(hessian) without allocating (N,K,K)."""
+    loss = CategoricalCrossEntropyLoss(n_classes=4)
+    rng = np.random.RandomState(0)
+    y = rng.randint(0, 4, size=12)
+    y_pred = rng.randn(12, 4) * 0.3
+    h_full = loss.hessian(y, y_pred)
+    h_diag = loss.hessian_diagonal(y, y_pred)
+    expected = np.diagonal(h_full, axis1=1, axis2=2)
+    assert h_diag.shape == (12, 4)
+    assert np.allclose(h_diag, expected)
+
+
+def test_cce_hessian_diagonal_does_not_allocate_full_block():
+    """hessian_diagonal must use the closed-form p*(1-p), not np.diag(p)."""
+    loss = CategoricalCrossEntropyLoss(n_classes=4)
+    y = np.array([0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3])
+    y_pred = np.random.RandomState(1).randn(12, 4)
+    h_diag = loss.hessian_diagonal(y, y_pred)
+    p = loss.softmax(y_pred)
+    expected = p * (1.0 - p) / 12.0
+    assert np.allclose(h_diag, expected)
