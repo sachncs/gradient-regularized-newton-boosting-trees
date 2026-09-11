@@ -259,6 +259,33 @@ class Loss(ABC):
             raise ValueError(f"n_samples must be a positive integer, got {n_samples}")
         return float(self.hessian_lipschitz_constant() * np.sqrt(n_samples))
 
+    def hessian_diagonal(
+        self, y_true: np.ndarray, y_pred: np.ndarray
+    ) -> np.ndarray:
+        """Per-sample Hessian diagonal.
+
+        Default implementation extracts the diagonal from the full
+        ``hessian`` array. Subclasses with a known diagonal form
+        (notably :class:`CategoricalCrossEntropyLoss`) should override
+        this to avoid the ``O(N K^2)`` block- allocation.
+
+        Args:
+            y_true: Ground-truth targets.
+            y_pred: Model predictions.
+
+        Returns:
+            Hessian diagonal with the same leading shape as ``y_pred``,
+            reduced by one rank.
+        """
+        h = self.hessian(y_true, y_pred)
+        if h.ndim == 1:
+            return h
+        if h.ndim == 2:
+            return np.asarray(np.diagonal(h, axis1=1, axis2=2), dtype=float)
+        raise ValueError(
+            f"hessian_diagonal: unsupported Hessian ndim {h.ndim} (shape {h.shape})"
+        )
+
 
 class MSELoss(Loss):
     """Mean squared error empirical risk.
@@ -692,11 +719,39 @@ class CategoricalCrossEntropyLoss(Loss):
         p = self.softmax(y_pred)
         n = y_true.shape[0]
         k = self.n_classes
-        hess = np.zeros((n, k, k))
+        hess = np.empty((n, k, k))
         for i in range(n):
             pi = p[i]
             hess[i] = (np.diag(pi) - np.outer(pi, pi)) / n
         return np.asarray(hess, dtype=float)
+
+    def hessian_diagonal(
+        self, y_true: np.ndarray, y_pred: np.ndarray
+    ) -> np.ndarray:
+        """Diagonal of the CCE Hessian, shape ``(n_samples, n_classes)``.
+
+        For softmax the Hessian block ``diag(p) - p p^T`` has diagonal
+        entries ``p_k * (1 - p_k)`` — computed directly without
+        allocating the full ``(N, K, K)`` block-diagonal tensor. This
+        reduces memory from ``O(N * K^2)`` to ``O(N * K)`` and is the
+        only quantity the multi-class Newton tree actually consumes.
+
+        Args:
+            y_true: Integer class labels, shape ``(n_samples,)``.
+            y_pred: Logits matrix, shape ``(n_samples, n_classes)``.
+
+        Returns:
+            Per-sample Hessian diagonal of shape ``(n_samples, n_classes)``.
+
+        Raises:
+            TypeError: For non-arrays or wrong dtypes.
+            ValueError: For rank/shape mismatch, empty arrays, non-finite
+                values, or labels outside ``[0, K-1]``.
+        """
+        validate_cce_inputs(y_true, y_pred, self.n_classes)
+        p = self.softmax(y_pred)
+        n = y_true.shape[0]
+        return np.asarray(p * (1.0 - p) / n, dtype=float)
 
     def hessian_lipschitz_constant(self) -> float:
         """Return ``M_0 = 1/4`` for categorical cross-entropy.
