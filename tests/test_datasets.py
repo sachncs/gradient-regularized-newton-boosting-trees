@@ -81,6 +81,7 @@ def test_higgs_invalid_n_samples():
 def test_load_wine_quality_local_path(tmp_path):
     """load_wine_quality accepts a pre-downloaded CSV via local_path."""
     import numpy as np
+
     from grnbt.datasets import load_wine_quality
 
     csv_path = tmp_path / "wine.csv"
@@ -102,6 +103,7 @@ def test_load_wine_quality_local_path(tmp_path):
 def test_load_higgs_subset_local_path(tmp_path):
     """load_higgs_subset accepts a pre-downloaded CSV via local_path."""
     import numpy as np
+
     from grnbt.datasets import load_higgs_subset
 
     csv_path = tmp_path / "higgs.csv"
