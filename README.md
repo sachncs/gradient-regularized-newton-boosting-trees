@@ -397,7 +397,47 @@ This codebase is a **byte-faithful** reproduction of the paper's formulas
 6. **Multi-class block Hessian** — ``diag(p) - p p^T`` per sample,
    extracted to diagonals for the K-class tree builder.
 
-### Documentation
+## Results
+
+Run the experiment scripts (see [Reproducible Experiments](#reproducible-experiments))
+to reproduce the paper's headline results. The scripts write machine-readable
+artifacts to `experiments/` and the figures below summarize them.
+
+### Wine Quality — Charbonnier Loss (paper Figure 1)
+
+`experiments/wine_charbonnier.py` trains three configurations on the Wine
+Quality (red) dataset with the Charbonnier loss and saves per-iteration
+losses to `experiments/wine_charbonnier_results.npz`:
+
+| Configuration | Description | Expected behavior (paper Fig. 1) |
+|---------------|-------------|----------------------------------|
+| Vanilla, ``λ_base=0`` | Unregularized Newton | **Diverges** — loss grows ~10× over 100 iters |
+| GRN, ``λ_base=0`` | Adaptive ``λ_k`` from Proposition 5.1 | **Converges** — loss decreases steadily |
+| StaticHighLam, ``λ_base=10`` | Heavily regularized | **Plateaus biased** — converges but above GRN |
+
+When matplotlib is installed the script also writes
+`experiments/wine_charbonnier.png` showing all three loss curves on a
+log-y axis.
+
+### Higgs — Weak Learner Diagnostics (paper Figure 2)
+
+`experiments/higgs_diagnostics.py` records per-iteration ``Θ_k`` (cosine
+angle in the H-induced inner product) and ``γ_k`` (weak gradient edge)
+on the Higgs boson subset. Output: `experiments/higgs_diagnostics_results.npz`.
+
+### Hyperparameter Ablations
+
+`experiments/ablations.py` runs the 108-config × 3-seed grid (see
+[Reproducible Experiments](#reproducible-experiments)) and writes
+`experiments/ablations.csv`. Aggregate with pandas:
+
+```python
+import pandas as pd
+df = pd.read_csv("experiments/ablations.csv")
+print(df.groupby(["loss", "engine"])["final_loss"].agg(["mean", "std"]))
+```
+
+## Documentation
 
 | Document | Description |
 |----------|-------------|
