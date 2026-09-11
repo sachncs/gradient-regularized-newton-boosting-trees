@@ -59,8 +59,7 @@ def validate_inputs(y_true: np.ndarray, y_pred: np.ndarray) -> None:
     requirements. This helper centralizes the checks so that each public loss
     method calls it as its first statement. The categorical cross-entropy
     loss has stricter requirements (integer labels, fixed class count) and
-    performs its own validation inline because it cannot share a function
-    across all subclasses.
+    delegates to :func:`validate_cce_inputs` instead.
 
     Args:
         y_true: Ground-truth targets, shape ``(n_samples,)``.
@@ -93,6 +92,61 @@ def validate_inputs(y_true: np.ndarray, y_pred: np.ndarray) -> None:
         raise ValueError("Inputs contain NaN values.")
     if np.any(np.isinf(y_true)) or np.any(np.isinf(y_pred)):
         raise ValueError("Inputs contain infinite values.")
+
+
+def validate_cce_inputs(
+    y_true: np.ndarray, y_pred: np.ndarray, n_classes: int
+) -> None:
+    """Validate categorical cross-entropy inputs.
+
+    Shared between ``CategoricalCrossEntropyLoss.loss``, ``.gradient``,
+    and ``.hessian`` so the rules stay in sync. Checks type, rank, shape
+    consistency, non-emptiness, finiteness, integer dtype, and label
+    range.
+
+    Args:
+        y_true: Integer class labels in ``{0, …, n_classes - 1}``,
+            shape ``(n_samples,)``.
+        y_pred: Logits matrix, shape ``(n_samples, n_classes)``.
+        n_classes: Number of classes ``K``.
+
+    Raises:
+        TypeError: If either input is not a NumPy array, or if
+            ``y_true`` is not integer-typed.
+        ValueError: On rank/shape mismatch, empty arrays, non-finite
+            values, or labels outside ``[0, n_classes - 1]``.
+    """
+    if not isinstance(y_true, np.ndarray):
+        raise TypeError(
+            f"y_true must be a numpy.ndarray, got {type(y_true).__name__}"
+        )
+    if not isinstance(y_pred, np.ndarray):
+        raise TypeError(
+            f"y_pred must be a numpy.ndarray, got {type(y_pred).__name__}"
+        )
+    if y_true.ndim != 1:
+        raise ValueError(f"y_true must be 1-D, got shape {y_true.shape}")
+    if y_pred.ndim != 2 or y_pred.shape[1] != n_classes:
+        raise ValueError(
+            f"y_pred must have shape (n_samples, {n_classes}), got {y_pred.shape}"
+        )
+    if y_true.shape[0] != y_pred.shape[0]:
+        raise ValueError(
+            f"Batch size mismatch: y_true {y_true.shape[0]} vs y_pred {y_pred.shape[0]}"
+        )
+    if y_true.size == 0:
+        raise ValueError("Input arrays must not be empty.")
+    if np.any(np.isnan(y_true)) or np.any(np.isnan(y_pred)):
+        raise ValueError("Inputs contain NaN values.")
+    if np.any(np.isinf(y_true)) or np.any(np.isinf(y_pred)):
+        raise ValueError("Inputs contain infinite values.")
+    if not np.issubdtype(y_true.dtype, np.integer):
+        raise TypeError(f"y_true must be integer typed, got {y_true.dtype}")
+    if np.any(y_true < 0) or np.any(y_true >= n_classes):
+        raise ValueError(
+            f"y_true labels must be in [0, {n_classes - 1}], got range "
+            f"[{y_true.min()}, {y_true.max()}]"
+        )
 
 
 class Loss(ABC):
@@ -576,39 +630,7 @@ class CategoricalCrossEntropyLoss(Loss):
             ValueError: For shape/rank mismatch, empty arrays, non-finite
                 values, or labels outside ``[0, K-1]``.
         """
-        # CCE validation is inlined (not via validate_inputs) because it
-        # enforces stricter constraints: integer labels, fixed K, 2-D shape.
-        if not isinstance(y_true, np.ndarray):
-            raise TypeError(
-                f"y_true must be a numpy.ndarray, got {type(y_true).__name__}"
-            )
-        if not isinstance(y_pred, np.ndarray):
-            raise TypeError(
-                f"y_pred must be a numpy.ndarray, got {type(y_pred).__name__}"
-            )
-        if y_true.ndim != 1:
-            raise ValueError(f"y_true must be 1-D, got shape {y_true.shape}")
-        if y_pred.ndim != 2 or y_pred.shape[1] != self.n_classes:
-            raise ValueError(
-                f"y_pred must have shape (n_samples, {self.n_classes}), got {y_pred.shape}"
-            )
-        if y_true.shape[0] != y_pred.shape[0]:
-            raise ValueError(
-                f"Batch size mismatch: y_true {y_true.shape[0]} vs y_pred {y_pred.shape[0]}"
-            )
-        if y_true.size == 0:
-            raise ValueError("Input arrays must not be empty.")
-        if np.any(np.isnan(y_true)) or np.any(np.isnan(y_pred)):
-            raise ValueError("Inputs contain NaN values.")
-        if np.any(np.isinf(y_true)) or np.any(np.isinf(y_pred)):
-            raise ValueError("Inputs contain infinite values.")
-        if not np.issubdtype(y_true.dtype, np.integer):
-            raise TypeError(f"y_true must be integer typed, got {y_true.dtype}")
-        if np.any(y_true < 0) or np.any(y_true >= self.n_classes):
-            raise ValueError(
-                f"y_true labels must be in [0, {self.n_classes - 1}], got range "
-                f"[{y_true.min()}, {y_true.max()}]"
-            )
+        validate_cce_inputs(y_true, y_pred, self.n_classes)
 
         p = self.softmax(y_pred)
         n = y_true.shape[0]
@@ -633,39 +655,7 @@ class CategoricalCrossEntropyLoss(Loss):
             ValueError: For rank/shape mismatch, empty arrays, non-finite
                 values, or labels outside ``[0, K-1]``.
         """
-        # CCE validation is inlined (not via validate_inputs) because it
-        # enforces stricter constraints: integer labels, fixed K, 2-D shape.
-        if not isinstance(y_true, np.ndarray):
-            raise TypeError(
-                f"y_true must be a numpy.ndarray, got {type(y_true).__name__}"
-            )
-        if not isinstance(y_pred, np.ndarray):
-            raise TypeError(
-                f"y_pred must be a numpy.ndarray, got {type(y_pred).__name__}"
-            )
-        if y_true.ndim != 1:
-            raise ValueError(f"y_true must be 1-D, got shape {y_true.shape}")
-        if y_pred.ndim != 2 or y_pred.shape[1] != self.n_classes:
-            raise ValueError(
-                f"y_pred must have shape (n_samples, {self.n_classes}), got {y_pred.shape}"
-            )
-        if y_true.shape[0] != y_pred.shape[0]:
-            raise ValueError(
-                f"Batch size mismatch: y_true {y_true.shape[0]} vs y_pred {y_pred.shape[0]}"
-            )
-        if y_true.size == 0:
-            raise ValueError("Input arrays must not be empty.")
-        if np.any(np.isnan(y_true)) or np.any(np.isnan(y_pred)):
-            raise ValueError("Inputs contain NaN values.")
-        if np.any(np.isinf(y_true)) or np.any(np.isinf(y_pred)):
-            raise ValueError("Inputs contain infinite values.")
-        if not np.issubdtype(y_true.dtype, np.integer):
-            raise TypeError(f"y_true must be integer typed, got {y_true.dtype}")
-        if np.any(y_true < 0) or np.any(y_true >= self.n_classes):
-            raise ValueError(
-                f"y_true labels must be in [0, {self.n_classes - 1}], got range "
-                f"[{y_true.min()}, {y_true.max()}]"
-            )
+        validate_cce_inputs(y_true, y_pred, self.n_classes)
 
         p = self.softmax(y_pred)
         n = y_true.shape[0]
@@ -695,39 +685,7 @@ class CategoricalCrossEntropyLoss(Loss):
             ValueError: For rank/shape mismatch, empty arrays, non-finite
                 values, or labels outside ``[0, K-1]``.
         """
-        # CCE validation is inlined (not via validate_inputs) because it
-        # enforces stricter constraints: integer labels, fixed K, 2-D shape.
-        if not isinstance(y_true, np.ndarray):
-            raise TypeError(
-                f"y_true must be a numpy.ndarray, got {type(y_true).__name__}"
-            )
-        if not isinstance(y_pred, np.ndarray):
-            raise TypeError(
-                f"y_pred must be a numpy.ndarray, got {type(y_pred).__name__}"
-            )
-        if y_true.ndim != 1:
-            raise ValueError(f"y_true must be 1-D, got shape {y_true.shape}")
-        if y_pred.ndim != 2 or y_pred.shape[1] != self.n_classes:
-            raise ValueError(
-                f"y_pred must have shape (n_samples, {self.n_classes}), got {y_pred.shape}"
-            )
-        if y_true.shape[0] != y_pred.shape[0]:
-            raise ValueError(
-                f"Batch size mismatch: y_true {y_true.shape[0]} vs y_pred {y_pred.shape[0]}"
-            )
-        if y_true.size == 0:
-            raise ValueError("Input arrays must not be empty.")
-        if np.any(np.isnan(y_true)) or np.any(np.isnan(y_pred)):
-            raise ValueError("Inputs contain NaN values.")
-        if np.any(np.isinf(y_true)) or np.any(np.isinf(y_pred)):
-            raise ValueError("Inputs contain infinite values.")
-        if not np.issubdtype(y_true.dtype, np.integer):
-            raise TypeError(f"y_true must be integer typed, got {y_true.dtype}")
-        if np.any(y_true < 0) or np.any(y_true >= self.n_classes):
-            raise ValueError(
-                f"y_true labels must be in [0, {self.n_classes - 1}], got range "
-                f"[{y_true.min()}, {y_true.max()}]"
-            )
+        validate_cce_inputs(y_true, y_pred, self.n_classes)
 
         p = self.softmax(y_pred)
         n = y_true.shape[0]
