@@ -83,6 +83,30 @@ Optional dependencies: scikit-learn ≥ 1.0 (datasets), matplotlib ≥ 3.4
 
 ---
 
+## When to use GRNBT
+
+GRNBT is a **research-grade, paper-faithful reproduction** of the
+algorithm in Zozoulenko et al. (2026). It is designed for:
+
+- Verifying theoretical claims about the paper's convergence guarantees.
+- Teaching the Newton-boosting family in a transparent, dependency-free
+  setting.
+- Serving as a starting point for novel Newton-method boosting research.
+
+GRNBT is **not designed for production workloads on large datasets**.
+For those, prefer:
+
+- [XGBoost](https://github.com/dmlc/xgboost) — production-grade GBDT
+  with GPU support.
+- [LightGBM](https://github.com/microsoft/LightGBM) — histogram-based,
+  fast on big data.
+- [CatBoost](https://github.com/catboost/catboost) — robust to
+  categorical features.
+- [scikit-learn's `GradientBoosting`](https://scikit-learn.org/stable/modules/ensemble.html#gradient-tree-boosting) —
+  pure-Python-ish reference at small scale.
+
+---
+
 ## Quick Start
 
 ### Vanilla Newton Boosting (Regression)
