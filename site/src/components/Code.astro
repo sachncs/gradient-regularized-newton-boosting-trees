@@ -1,0 +1,242 @@
+---
+const samples = [
+  {
+    id: "regression",
+    label: "Regression",
+    filename: "vanilla_regression.py",
+    code: `import numpy as np
+from grnbt import VanillaNewtonBoosting, MSELoss
+
+rng = np.random.default_rng(42)
+X = rng.standard_normal((500, 8))
+y = X[:, 0] + 0.5 * X[:, 1] ** 2 + 0.1 * rng.standard_normal(500)
+
+model = VanillaNewtonBoosting(
+    loss=MSELoss(),
+    n_estimators=100,
+    learning_rate=0.1,
+    max_depth=4,
+)
+model.fit(X, y)
+preds = model.predict(X)
+print(f"final loss: {model.history['loss'][-1]:.6f}")`,
+  },
+  {
+    id: "grn",
+    label: "Adaptive regularization",
+    filename: "grn_charbonnier.py",
+    code: `from grnbt import (
+    GradientRegularizedNewtonBoosting,
+    CharbonnierLoss,
+)
+
+model = GradientRegularizedNewtonBoosting(
+    loss=CharbonnierLoss(),
+    n_estimators=100,
+    learning_rate=1.0,
+    max_depth=4,
+    lam_base=1e-3,
+)
+model.fit(X, y)`,
+  },
+  {
+    id: "multiclass",
+    label: "Multi-class",
+    filename: "multiclass_softmax.py",
+    code: `from grnbt import (
+    MultiClassNewtonBoosting,
+    CategoricalCrossEntropyLoss,
+)
+
+logits = np.stack([X[:, 0], -X[:, 0] + X[:, 1], X[:, 2]], axis=1)
+y = np.argmax(logits, axis=1)
+
+model = MultiClassNewtonBoosting(
+    loss=CategoricalCrossEntropyLoss(n_classes=3),
+    n_estimators=100,
+    learning_rate=0.1,
+    max_depth=3,
+    n_classes=3,
+)
+model.fit(X, y)
+probs = model.predict_proba(X)   # (n, 3), rows sum to 1`,
+  },
+  {
+    id: "diagnostics",
+    label: "Diagnostics",
+    filename: "hilbert_diagnostics.py",
+    code: `from grnbt.diagnostics import (
+    cosine_angle_theta,
+    exact_newton_direction,
+    verify_lemma_4_2,
+    weak_gradient_edge_gamma,
+)
+
+# Replay iteration k to inspect Θₖ and γₖ.
+f_exact = exact_newton_direction(g, h, lam_k)
+f_weak  = tree.predict(X)
+theta_k = cosine_angle_theta(g, h, f_exact, f_weak)
+gamma_k = weak_gradient_edge_gamma(g, h, lam_k, f_weak)
+verify_lemma_4_2(g, h, lam_k, f_exact)`,
+  },
+];
+---
+
+<section id="code" class="section">
+  <div class="container-page">
+    <div class="reveal grid grid-cols-1 items-end gap-6 lg:grid-cols-12">
+      <div class="lg:col-span-7">
+        <p class="eyebrow">Developer experience</p>
+        <h2 class="mt-4 font-display text-display-lg text-balance text-ink">
+          A scikit-learn feel,
+          <span class="text-ink-soft">without the framework.</span>
+        </h2>
+      </div>
+      <p class="text-[14.5px] leading-relaxed text-ink-muted lg:col-span-5">
+        Familiar <code class="font-mono text-ink">.fit / .predict</code> surface,
+        strict type hints, mypy-clean, and four short lines to a paper-faithful
+        training run.
+      </p>
+    </div>
+
+    <div class="reveal mt-12 overflow-hidden rounded-[1.5rem] border border-line bg-elev">
+      <!-- Tab bar -->
+      <div
+        class="flex items-center justify-between gap-3 border-b border-line bg-bg-deep/40 px-3 py-2.5"
+      >
+        <div role="tablist" class="flex flex-wrap items-center gap-1.5">
+          {
+            samples.map((s, i) => (
+              <button
+                role="tab"
+                data-code-tab={s.id}
+                aria-selected={i === 0 ? "true" : "false"}
+                class={`code-tab inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[12.5px] font-medium transition-colors ${
+                  i === 0
+                    ? "bg-ink text-bg"
+                    : "text-ink-muted hover:bg-bg-deep hover:text-ink"
+                }`}
+              >
+                <span
+                  class={`inline-block h-1.5 w-1.5 rounded-full ${
+                    i === 0 ? "bg-signal-green" : "bg-ink-soft/40"
+                  }`}
+                />
+                {s.label}
+              </button>
+            ))
+          }
+        </div>
+        <span class="hidden items-center gap-2 font-mono text-[11px] text-ink-soft sm:flex">
+          <span class="inline-block h-1.5 w-1.5 rounded-full bg-signal-red/60"></span>
+          <span class="inline-block h-1.5 w-1.5 rounded-full bg-signal-amber/60"></span>
+          <span class="inline-block h-1.5 w-1.5 rounded-full bg-signal-green/60"></span>
+          <span class="ml-2">~ python</span>
+        </span>
+      </div>
+
+      <!-- Code panes -->
+      {
+        samples.map((s, i) => (
+          <div
+            data-code-pane={s.id}
+            class={i === 0 ? "block" : "hidden"}
+            role="tabpanel"
+          >
+            <div class="flex items-center justify-between gap-3 border-b border-line bg-bg-deep/30 px-5 py-2.5 text-[11.5px]">
+              <span class="font-mono text-ink-soft">{s.filename}</span>
+              <button
+                class="copy-btn inline-flex items-center gap-1.5 rounded-full border border-line bg-bg-elev px-2.5 py-1 font-mono text-[11px] text-ink-muted transition-colors hover:border-line-strong hover:text-ink"
+                data-copy={s.code}
+                aria-label="Copy code"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  class="h-3 w-3"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <rect x="9" y="9" width="13" height="13" rx="2" />
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                </svg>
+                <span>copy</span>
+              </button>
+            </div>
+            <pre class="overflow-x-auto px-5 py-5 font-mono text-[12.5px] leading-[1.75] text-ink"><code>{s.code}</code></pre>
+          </div>
+        ))
+      }
+    </div>
+
+    <!-- Quick stats below code -->
+    <div class="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <div class="card p-5">
+        <div class="text-[13px] text-ink-soft">Runtime deps</div>
+        <div class="mt-2 font-display text-display-sm text-ink">1</div>
+        <div class="text-[11.5px] text-ink-soft">(NumPy)</div>
+      </div>
+      <div class="card p-5">
+        <div class="text-[13px] text-ink-soft">Public classes</div>
+        <div class="mt-2 font-display text-display-sm text-ink">6</div>
+        <div class="text-[11.5px] text-ink-soft">engines + losses</div>
+      </div>
+      <div class="card p-5">
+        <div class="text-[13px] text-ink-soft">Tests</div>
+        <div class="mt-2 font-display text-display-sm text-ink">139</div>
+        <div class="text-[11.5px] text-ink-soft">all passing</div>
+      </div>
+      <div class="card p-5">
+        <div class="text-[13px] text-ink-soft">Type-check</div>
+        <div class="mt-2 font-display text-display-sm text-ink">mypy</div>
+        <div class="text-[11.5px] text-ink-soft">--strict</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  const tabs = document.querySelectorAll<HTMLButtonElement>(".code-tab");
+  const panes = document.querySelectorAll<HTMLElement>("[data-code-pane]");
+  tabs.forEach((tab) => {
+    tab.addEventListener("click", () => {
+      const id = tab.getAttribute("data-code-tab");
+      tabs.forEach((t) => {
+        const active = t === tab;
+        t.setAttribute("aria-selected", active ? "true" : "false");
+        t.classList.toggle("bg-ink", active);
+        t.classList.toggle("text-bg", active);
+        t.classList.toggle("text-ink-muted", !active);
+        const dot = t.querySelector("span:first-child");
+        if (dot) dot.classList.toggle("bg-signal-green", active);
+        if (dot) dot.classList.toggle("bg-ink-soft/40", !active);
+      });
+      panes.forEach((p) => {
+        p.classList.toggle("block", p.getAttribute("data-code-pane") === id);
+        p.classList.toggle("hidden", p.getAttribute("data-code-pane") !== id);
+      });
+    });
+  });
+
+  const copyButtons = document.querySelectorAll<HTMLButtonElement>("[data-copy]");
+  copyButtons.forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const text = btn.getAttribute("data-copy") ?? "";
+      try {
+        await navigator.clipboard.writeText(text);
+        const label = btn.querySelector("span");
+        if (label) {
+          const original = label.textContent;
+          label.textContent = "copied";
+          setTimeout(() => {
+            label.textContent = original;
+          }, 1500);
+        }
+      } catch (e) {
+        /* ignore */
+      }
+    });
+  });
+</script>

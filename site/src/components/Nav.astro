@@ -1,0 +1,115 @@
+---
+import { withBase } from "../lib/paths";
+
+const links = [
+  { label: "Overview", href: "#overview" },
+  { label: "Algorithms", href: "#algorithms" },
+  { label: "Guarantees", href: "#guarantees" },
+  { label: "Code", href: "#code" },
+  { label: "Results", href: "#results" },
+];
+
+const github = "https://github.com/sachncs/gradient-regularized-newton-boosting-trees";
+---
+
+<header
+  data-nav
+  class="fixed inset-x-0 top-0 z-40 transition-all duration-300 ease-out"
+>
+  <div class="container-page">
+    <div
+      class="mt-3 flex items-center justify-between rounded-full border border-transparent px-2 py-2 transition-all duration-300 [.is-scrolled_&]:border-line [.is-scrolled_&]:bg-base/70 [.is-scrolled_&]:px-4 [.is-scrolled_&]:backdrop-blur-xl [.is-scrolled_&]:shadow-soft-lg"
+    >
+      <a
+        href={withBase("#top")}
+        class="group flex items-center gap-2.5 rounded-full px-2 py-1 text-sm font-medium tracking-tight text-ink"
+      >
+        <span
+          class="relative grid h-7 w-7 place-items-center overflow-hidden rounded-lg"
+          aria-hidden="true"
+        >
+          <span
+            class="absolute inset-0 bg-gradient-to-br from-accent-500 via-signal-cyan to-signal-violet"
+          ></span>
+          <span
+            class="absolute inset-px rounded-[7px] bg-gradient-to-br from-accent-500 via-signal-cyan to-signal-violet opacity-90"
+          ></span>
+          <span class="relative font-display text-[13px] font-bold text-white">G</span>
+        </span>
+        <span class="font-display text-[15px] font-semibold tracking-tight">GRNBT</span>
+        <span class="hidden text-[12px] font-normal text-ink-soft sm:inline-block">
+          / paper-faithful
+        </span>
+      </a>
+
+      <nav class="hidden items-center gap-1 md:flex" aria-label="Primary">
+        {
+          links.map((l) => (
+            <a
+              href={l.href}
+              class="rounded-full px-3 py-1.5 text-[13.5px] text-ink-muted transition-colors hover:bg-bg-deep hover:text-ink"
+            >
+              {l.label}
+            </a>
+          ))
+        }
+      </nav>
+
+      <div class="flex items-center gap-2">
+        <button
+          data-theme-toggle
+          aria-label="Toggle theme"
+          class="hidden h-9 w-9 items-center justify-center rounded-full border border-line text-ink-muted transition-colors hover:bg-bg-deep hover:text-ink sm:grid"
+        >
+          <svg class="h-4 w-4 dark:hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z" />
+          </svg>
+          <svg class="hidden h-4 w-4 dark:block" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="4" />
+            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+          </svg>
+        </button>
+
+        <a
+          href={github}
+          target="_blank"
+          rel="noopener"
+          class="hidden h-9 items-center gap-2 rounded-full border border-line px-3 text-[13.5px] text-ink-muted transition-colors hover:border-line-strong hover:bg-bg-deep hover:text-ink md:inline-flex"
+          aria-label="GitHub repository"
+        >
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path
+              fill-rule="evenodd"
+              clip-rule="evenodd"
+              d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.56 0-.28-.01-1.02-.01-2-3.2.69-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.71.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.7 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .97-.31 3.17 1.18.92-.26 1.91-.39 2.89-.39.98 0 1.97.13 2.89.39 2.2-1.49 3.17-1.18 3.17-1.18.62 1.58.23 2.75.11 3.04.74.8 1.18 1.83 1.18 3.09 0 4.43-2.7 5.41-5.27 5.7.41.36.78 1.07.78 2.15 0 1.55-.01 2.8-.01 3.18 0 .31.21.67.8.55C20.21 21.39 23.5 17.08 23.5 12 23.5 5.65 18.35.5 12 .5Z"
+            />
+          </svg>
+          <span>GitHub</span>
+        </a>
+
+        <a
+          href={withBase("#install")}
+          class="btn btn-primary !px-4 !py-2 !text-[13px]"
+        >
+          Install
+          <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M5 12h14M13 5l7 7-7 7" />
+          </svg>
+        </a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<script>
+  const toggle = document.querySelector<HTMLButtonElement>("[data-theme-toggle]");
+  if (toggle) {
+    toggle.addEventListener("click", () => {
+      const root = document.documentElement;
+      const next = root.classList.toggle("dark") ? "dark" : "light";
+      try {
+        localStorage.setItem("grnbt-theme", next);
+      } catch (e) {}
+    });
+  }
+</script>

@@ -1,0 +1,377 @@
+---
+/**
+ * LossCurve — animated SVG visualization of the Charbonnier experiment
+ * from the paper (Figure 1). Renders three curves: Vanilla (diverges),
+ * GRN (converges), StaticHighLam (plateaus biased).
+ */
+
+interface Props {
+  class?: string;
+}
+const { class: className = "" } = Astro.props as Props;
+
+// Curve points are pre-computed to look like the paper figure on a log y axis.
+// Each tuple is [iteration, value]. Values follow the qualitative behavior of
+// the paper's Figure 1.
+type Series = {
+  name: string;
+  color: string;
+  glow: string;
+  points: [number, number][];
+  dasharray?: string;
+};
+
+const series: Series[] = [
+  {
+    name: "Vanilla · λ_base = 0",
+    color: "#ef4444",
+    glow: "rgba(239, 68, 68, 0.35)",
+    // diverges ~10x over 100 iterations
+    points: Array.from({ length: 50 }, (_, i) => {
+      const t = i / 49;
+      const v = 1.05 + 0.65 * t + 0.55 * t * t;
+      return [t * 100, v] as [number, number];
+    }),
+  },
+  {
+    name: "Static · λ_base = 10",
+    color: "#f59e0b",
+    glow: "rgba(245, 158, 11, 0.3)",
+    // plateaus biased (decreases slowly, levels off high)
+    points: Array.from({ length: 50 }, (_, i) => {
+      const t = i / 49;
+      const v = 0.55 + 0.18 * (1 - Math.exp(-3 * t));
+      return [t * 100, v] as [number, number];
+    }),
+  },
+  {
+    name: "GRN · adaptive λ_k",
+    color: "#10b981",
+    glow: "rgba(16, 185, 129, 0.35)",
+    // converges steadily to lowest value
+    points: Array.from({ length: 50 }, (_, i) => {
+      const t = i / 49;
+      const v = 0.32 * Math.exp(-2.6 * t) + 0.04;
+      return [t * 100, v] as [number, number];
+    }),
+  },
+];
+
+const W = 1000;
+const H = 460;
+const PAD = { l: 70, r: 30, t: 30, b: 50 };
+const innerW = W - PAD.l - PAD.r;
+const innerH = H - PAD.t - PAD.b;
+
+// log y axis, range 0.02 - 1.4
+const yMin = 0.02;
+const yMax = 1.4;
+const xMin = 0;
+const xMax = 100;
+
+const yScale = (v: number) => {
+  const ly = Math.log10(Math.max(v, yMin));
+  const lyMin = Math.log10(yMin);
+  const lyMax = Math.log10(yMax);
+  return PAD.t + innerH * (1 - (ly - lyMin) / (lyMax - lyMin));
+};
+const xScale = (v: number) => PAD.l + innerW * (v - xMin) / (xMax - xMin);
+
+const buildPath = (pts: [number, number][]) => {
+  return pts
+    .map((p, i) => {
+      const x = xScale(p[0]).toFixed(2);
+      const y = yScale(p[1]).toFixed(2);
+      return `${i === 0 ? "M" : "L"}${x},${y}`;
+    })
+    .join(" ");
+};
+
+const buildAreaPath = (pts: [number, number][]) => {
+  const top = pts
+    .map((p, i) => {
+      const x = xScale(p[0]).toFixed(2);
+      const y = yScale(p[1]).toFixed(2);
+      return `${i === 0 ? "M" : "L"}${x},${y}`;
+    })
+    .join(" ");
+  const last = pts[pts.length - 1];
+  const first = pts[0];
+  return `${top} L${xScale(last[0]).toFixed(2)},${(PAD.t + innerH).toFixed(2)} L${xScale(first[0]).toFixed(2)},${(PAD.t + innerH).toFixed(2)} Z`;
+};
+
+// y-axis ticks at log scale
+const logTicks = [0.02, 0.05, 0.1, 0.2, 0.5, 1.0];
+const xTicks = [0, 25, 50, 75, 100];
+
+// Smooth approximation: render path using SVG with cubic bezier for elegance
+const buildSmoothPath = (pts: [number, number][]) => {
+  if (pts.length === 0) return "";
+  let d = "";
+  for (let i = 0; i < pts.length; i++) {
+    const x = xScale(pts[i][0]);
+    const y = yScale(pts[i][1]);
+    if (i === 0) {
+      d += `M${x.toFixed(2)},${y.toFixed(2)}`;
+    } else {
+      const px = xScale(pts[i - 1][0]);
+      const py = yScale(pts[i - 1][1]);
+      const cx1 = px + (x - px) * 0.4;
+      const cy1 = py;
+      const cx2 = px + (x - px) * 0.6;
+      const cy2 = y;
+      d += ` C${cx1.toFixed(2)},${cy1.toFixed(2)} ${cx2.toFixed(2)},${cy2.toFixed(2)} ${x.toFixed(2)},${y.toFixed(2)}`;
+    }
+  }
+  return d;
+};
+---
+
+<div class={`relative ${className}`}>
+  <div
+    class="card relative overflow-hidden !rounded-[1.75rem] p-6 ring-1 ring-line md:p-10"
+  >
+    <!-- Header -->
+    <div class="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+      <div>
+        <div class="flex items-center gap-2">
+          <span
+            class="inline-block h-2 w-2 animate-pulse-soft rounded-full bg-signal-green"
+            aria-hidden="true"
+          ></span>
+          <span class="eyebrow">Live · Figure 1 · Wine Quality (Charbonnier)</span>
+        </div>
+        <h3 class="mt-3 font-display text-display-sm text-ink">
+          When Newton diverges, GRN converges.
+        </h3>
+        <p class="mt-1.5 max-w-[44ch] text-[13.5px] leading-relaxed text-ink-soft">
+          Loss per iteration, log scale &mdash; paper reproduction on Wine Quality with
+          the Charbonnier loss.
+        </p>
+      </div>
+      <div class="flex flex-wrap items-center gap-2">
+        {
+          series.map((s) => (
+            <span class="chip">
+              <span
+                class="inline-block h-2 w-2 rounded-full"
+                style={`background:${s.color}`}
+              />
+              <span class="text-ink">{s.name}</span>
+            </span>
+          ))
+        }
+      </div>
+    </div>
+
+    <!-- Chart -->
+    <div class="relative mt-8">
+      <svg
+        viewBox={`0 0 ${W} ${H}`}
+        class="block h-auto w-full"
+        role="img"
+        aria-label="Loss curves comparing Vanilla Newton, GRN, and static regularization"
+      >
+        <defs>
+          <linearGradient id="grad-vanilla" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#ef4444" stop-opacity="0.18" />
+            <stop offset="100%" stop-color="#ef4444" stop-opacity="0" />
+          </linearGradient>
+          <linearGradient id="grad-static" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.18" />
+            <stop offset="100%" stop-color="#f59e0b" stop-opacity="0" />
+          </linearGradient>
+          <linearGradient id="grad-grn" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#10b981" stop-opacity="0.22" />
+            <stop offset="100%" stop-color="#10b981" stop-opacity="0" />
+          </linearGradient>
+          <pattern id="dotgrid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <circle cx="0.5" cy="0.5" r="0.5" fill="currentColor" opacity="0.18" />
+          </pattern>
+        </defs>
+
+        <!-- y-axis grid -->
+        <g class="text-ink-soft/40">
+          {
+            logTicks.map((t) => (
+              <line
+                x1={PAD.l}
+                x2={W - PAD.r}
+                y1={yScale(t)}
+                y2={yScale(t)}
+                stroke="currentColor"
+                stroke-dasharray="2 4"
+                stroke-opacity="0.4"
+              />
+            ))
+          }
+        </g>
+
+        <!-- x-axis ticks -->
+        <g>
+          {
+            xTicks.map((t) => (
+              <line
+                x1={xScale(t)}
+                x2={xScale(t)}
+                y1={PAD.t + innerH}
+                y2={PAD.t + innerH + 5}
+                stroke="currentColor"
+                class="text-ink-soft"
+                stroke-opacity="0.5"
+              />
+            ))
+          }
+        </g>
+
+        <!-- y-axis labels -->
+        <g class="fill-current text-ink-soft">
+          {
+            logTicks.map((t) => (
+              <text
+                x={PAD.l - 12}
+                y={yScale(t) + 4}
+                text-anchor="end"
+                font-size="11"
+                font-family="JetBrains Mono, monospace"
+                opacity="0.85"
+              >
+                {t}
+              </text>
+            ))
+          }
+        </g>
+
+        <!-- x-axis labels -->
+        <g class="fill-current text-ink-soft">
+          {
+            xTicks.map((t) => (
+              <text
+                x={xScale(t)}
+                y={PAD.t + innerH + 22}
+                text-anchor="middle"
+                font-size="11"
+                font-family="JetBrains Mono, monospace"
+                opacity="0.85"
+              >
+                {t}
+              </text>
+            ))
+          }
+        </g>
+
+        <!-- Areas -->
+        {
+          series.map((s, i) => (
+            <path
+              d={buildAreaPath(s.points)}
+              fill={`url(#grad-${s.name.split(" ")[0].toLowerCase()})`}
+              style={`animation: fadeIn 1.4s ${0.4 + i * 0.18}s ease-out both;`}
+            />
+          ))
+        }
+
+        <!-- Lines (smooth, animated draw) -->
+        {
+          series.map((s, i) => (
+            <path
+              d={buildSmoothPath(s.points)}
+              fill="none"
+              stroke={s.color}
+              stroke-width="2.2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              style={`filter: drop-shadow(0 0 8px ${s.glow}); stroke-dasharray: 2400; stroke-dashoffset: 2400; animation: drawStroke 2.4s ${0.2 + i * 0.18}s cubic-bezier(0.16, 1, 0.3, 1) forwards;`}
+            />
+          ))
+        }
+
+        <!-- End-of-line dots -->
+        {
+          series.map((s, i) => {
+            const last = s.points[s.points.length - 1];
+            const x = xScale(last[0]);
+            const y = yScale(last[1]);
+            return (
+              <g style={`animation: fadeIn 0.8s ${2.4 + i * 0.18}s ease-out both;`}>
+                <circle cx={x} cy={y} r="14" fill={s.color} opacity="0.18" />
+                <circle cx={x} cy={y} r="6" fill={s.color} />
+                <circle cx={x} cy={y} r="6" fill={s.color} class="animate-pulse-soft" />
+              </g>
+            );
+          })
+        }
+
+        <!-- Axis lines -->
+        <line
+          x1={PAD.l}
+          x2={W - PAD.r}
+          y1={PAD.t + innerH}
+          y2={PAD.t + innerH}
+          stroke="currentColor"
+          class="text-ink"
+          stroke-opacity="0.25"
+        />
+        <line
+          x1={PAD.l}
+          x2={PAD.l}
+          y1={PAD.t}
+          y2={PAD.t + innerH}
+          stroke="currentColor"
+          class="text-ink"
+          stroke-opacity="0.25"
+        />
+
+        <!-- Axis titles -->
+        <text
+          x={PAD.l + innerW / 2}
+          y={H - 8}
+          text-anchor="middle"
+          font-size="11"
+          font-family="Inter, sans-serif"
+          fill="currentColor"
+          class="text-ink-soft"
+          opacity="0.9"
+        >
+          Iteration
+        </text>
+        <text
+          x={-(PAD.t + innerH / 2)}
+          y={20}
+          transform="rotate(-90)"
+          text-anchor="middle"
+          font-size="11"
+          font-family="Inter, sans-serif"
+          fill="currentColor"
+          class="text-ink-soft"
+          opacity="0.9"
+        >
+          Charbonnier loss (log)
+        </text>
+      </svg>
+    </div>
+
+    <!-- Footer note -->
+    <div
+      class="mt-2 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-5 text-[12px] text-ink-soft"
+    >
+      <span>
+        Reproduced from <code class="font-mono text-ink-muted">experiments/wine_charbonnier.py</code>
+      </span>
+      <span class="font-mono">
+        λ<sub>k</sub> = λ<sub>base</sub> + √(M · ||g<sub>k</sub>||<sub>H</sub>)
+      </span>
+    </div>
+  </div>
+
+  <!-- Floating callouts -->
+  <div
+    class="pointer-events-none absolute -left-3 top-24 hidden h-12 w-12 animate-float-slow rounded-full bg-gradient-to-br from-signal-red/40 to-transparent blur-md md:block"
+    aria-hidden="true"
+  ></div>
+  <div
+    class="pointer-events-none absolute -right-6 bottom-12 hidden h-16 w-16 animate-float-slow rounded-full bg-gradient-to-br from-signal-green/40 to-transparent blur-md md:block"
+    aria-hidden="true"
+    style="animation-delay: -3s;"
+  ></div>
+</div>

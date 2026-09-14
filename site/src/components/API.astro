@@ -1,0 +1,82 @@
+---
+const apis = [
+  ["VanillaNewtonBoosting", "Static-λ second-order GBDT (Algorithm 1)"],
+  ["GradientRegularizedNewtonBoosting", "Adaptive-λ boosting (Algorithm 2)"],
+  ["MultiClassNewtonBoosting", "K-class softmax boosting"],
+  ["MSELoss", "Mean-squared-error loss (M₀ = 0)"],
+  ["CharbonnierLoss", "Pseudo-Huber-style loss (M₀ = 1)"],
+  ["BinaryCrossEntropyLoss", "BCE loss (M₀ = ¼)"],
+  ["CategoricalCrossEntropyLoss", "Multi-class CCE loss (M₀ = ¼)"],
+  ["NewtonTree", "Scalar-output greedy Newton tree"],
+  ["MultiClassNewtonTree", "Vector-output K-class Newton tree"],
+  ["cosine_angle_theta", "Hilbert-space angle Θₖ"],
+  ["exact_newton_direction", "Closed-form f = -g/(h+λ)"],
+  ["verify_lemma_4_2", "Lemma 4.2 identity check"],
+  ["weak_gradient_edge_gamma", "γₖ weak gradient edge"],
+];
+
+const docs = [
+  { label: "Mathematical foundations", href: "#guarantees" },
+  { label: "Architecture", href: "#overview" },
+  { label: "API reference", href: "#code" },
+  { label: "Experiments", href: "#results" },
+  { label: "Fidelity report", href: "https://github.com/sachncs/gradient-regularized-newton-boosting-trees/blob/master/docs/fidelity.md" },
+];
+---
+
+<section class="section">
+  <div class="container-page">
+    <div class="reveal grid grid-cols-1 gap-12 lg:grid-cols-12">
+      <div class="lg:col-span-5">
+        <p class="eyebrow">API surface</p>
+        <h2 class="mt-4 font-display text-display-lg text-balance text-ink">
+          A short list.
+          <span class="text-ink-soft">A long reach.</span>
+        </h2>
+        <p class="mt-6 text-[15px] leading-relaxed text-ink-muted">
+          Three engines, four losses, two tree learners, four diagnostics —
+          everything you need to reproduce the paper and explore beyond it.
+        </p>
+
+        <div class="mt-7 flex flex-wrap items-center gap-2">
+          {docs.map((d) => (
+            <a
+              href={d.href}
+              class="chip hover:border-line-strong hover:text-ink"
+              target={d.href.startsWith("http") ? "_blank" : undefined}
+              rel={d.href.startsWith("http") ? "noopener" : undefined}
+            >
+              {d.label}
+              <svg viewBox="0 0 24 24" class="h-3 w-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 12h14M13 5l7 7-7 7" />
+              </svg>
+            </a>
+          ))}
+        </div>
+      </div>
+
+      <div class="reveal lg:col-span-7">
+        <div class="card overflow-hidden">
+          <div class="flex items-center justify-between border-b border-line bg-bg-deep/40 px-5 py-2.5">
+            <span class="font-mono text-[12px] text-ink-soft">grnbt / public API</span>
+            <span class="font-mono text-[11px] text-ink-soft">13 symbols</span>
+          </div>
+          <ul class="divide-y divide-line">
+            {
+              apis.map(([name, desc]) => (
+                <li class="grid grid-cols-12 items-center gap-3 px-5 py-3 transition-colors hover:bg-bg-deep/40">
+                  <code class="col-span-5 truncate font-mono text-[12.5px] text-accent-500 md:col-span-5">
+                    {name}
+                  </code>
+                  <span class="col-span-7 text-[12.5px] text-ink-muted md:col-span-7">
+                    {desc}
+                  </span>
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

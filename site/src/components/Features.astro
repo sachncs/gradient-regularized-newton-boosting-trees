@@ -1,0 +1,106 @@
+---
+const features = [
+  {
+    icon: "tree",
+    eyebrow: "Newton tree learner",
+    title: "Closed-form leaves & splits.",
+    body:
+      "Exact greedy splits with closed-form leaf weights and exact Newton gain. No gradient descent on leaves, no approximations.",
+  },
+  {
+    icon: "stack",
+    eyebrow: "Multi-class boosting",
+    title: "K-class softmax output.",
+    body:
+      "Vector-valued tree leaves share split structure across classes. Block Hessians diag(p) − ppᵀ extracted to per-class diagonals.",
+  },
+  {
+    icon: "loss",
+    eyebrow: "Four analytic losses",
+    title: "MSE, Charbonnier, BCE, CCE.",
+    body:
+      "Each loss ships with its analytic Hessian-Lipschitz constant M₀ ∈ {0, ¼, 1}, ready to plug into Proposition 5.1.",
+  },
+  {
+    icon: "diag",
+    eyebrow: "Hilbert-space diagnostics",
+    title: "Verify the paper on your model.",
+    body:
+      "Exact Newton direction f = -g/(h+λ), cosine angle Θₖ, weak gradient edge γₖ, and Lemma 4.2 — all numerically checked.",
+  },
+  {
+    icon: "leaf",
+    eyebrow: "Pure NumPy",
+    title: "No C extensions. No frameworks.",
+    body:
+      "A single runtime dependency. Optional extras: scikit-learn for datasets, matplotlib for the experiment plots.",
+  },
+  {
+    icon: "shield",
+    eyebrow: "139 tests",
+    title: "Correctness, identities, edge cases.",
+    body:
+      "Every closed-form in the paper has a test. Mathematical identities are checked numerically, byte-faithful to the formulas.",
+  },
+];
+
+const iconMap: Record<string, string> = {
+  tree: `<path d="M12 22V12M12 12l-4-4M12 12l4-4M6 18l-3 3M18 18l3 3M12 6V3M9 3h6"/>`,
+  stack: `<path d="M12 3 3 7l9 4 9-4-9-4ZM3 12l9 4 9-4M3 17l9 4 9-4"/>`,
+  loss: `<path d="M3 12a9 9 0 1 0 9-9"/><path d="M3 12h4M12 8v4"/>`,
+  diag: `<path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/><path d="M12 3v18M3 12h18"/>`,
+  leaf: `<path d="M11 20A7 7 0 0 1 4 13c0-4 4-9 9-12 0 8-4 12-9 12Z"/><path d="M2 22s4-2 4-4"/>`,
+  shield: `<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/>`,
+};
+---
+
+<section class="section">
+  <div class="container-page">
+    <div class="reveal max-w-3xl">
+      <p class="eyebrow">Capabilities</p>
+      <h2 class="mt-4 font-display text-display-lg text-balance text-ink">
+        Everything the paper promises,
+        <span class="text-ink-soft">nothing you don't need.</span>
+      </h2>
+      <p class="mt-6 text-[15px] leading-relaxed text-ink-muted">
+        A focused surface area: six core APIs, four losses, three engines. Built
+        for clarity, not for benchmarks on big data.
+      </p>
+    </div>
+
+    <div class="mt-14 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {
+        features.map((f, i) => (
+          <article
+            class="reveal card group relative overflow-hidden p-7"
+            style={`animation-delay: ${i * 60}ms;`}
+          >
+            <span
+              class="grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br from-accent-500/10 via-signal-cyan/10 to-signal-violet/10 text-accent-500 ring-1 ring-accent-500/15 transition-transform duration-500 group-hover:scale-105"
+              aria-hidden="true"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                class="h-5 w-5"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <Fragment set:html={iconMap[f.icon]} />
+              </svg>
+            </span>
+            <div class="mt-6 eyebrow">{f.eyebrow}</div>
+            <h3 class="mt-2 font-display text-[1.125rem] font-semibold tracking-tight text-ink">
+              {f.title}
+            </h3>
+            <p class="mt-2 text-[14px] leading-relaxed text-ink-muted">
+              {f.body}
+            </p>
+          </article>
+        ))
+      }
+    </div>
+  </div>
+</section>

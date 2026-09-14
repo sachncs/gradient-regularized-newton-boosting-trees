@@ -1,0 +1,103 @@
+---
+const usecases = [
+  {
+    title: "Verifying theory",
+    body: "Run experiments that reproduce Figures 1 and 2 of the paper. Trace every identity numerically.",
+    icon: "flask",
+  },
+  {
+    title: "Teaching Newton boosting",
+    body: "Use it in a graduate ML seminar. Every line maps to a closed-form on the projector slide.",
+    icon: "book",
+  },
+  {
+    title: "Starting a research fork",
+    body: "Drop in a custom loss with its analytic M₀, swap in your own tree, and run.",
+    icon: "code",
+  },
+];
+const notFor = ["Petabyte-scale datasets", "Latency-critical serving", "GPU-only environments"];
+---
+
+<section class="section">
+  <div class="container-page">
+    <div class="reveal max-w-3xl">
+      <p class="eyebrow">When to use GRNBT</p>
+      <h2 class="mt-4 font-display text-display-lg text-balance text-ink">
+        Designed for research,
+        <span class="text-ink-soft">not for production scale.</span>
+      </h2>
+      <p class="mt-6 text-[15px] leading-relaxed text-ink-muted">
+        GRNBT is the right tool when clarity matters more than throughput. For
+        big-data production workloads, prefer a system built for it.
+      </p>
+    </div>
+
+    <div class="mt-12 grid grid-cols-1 gap-5 lg:grid-cols-3">
+      <div class="lg:col-span-2 grid grid-cols-1 gap-4 sm:grid-cols-3">
+        {
+          usecases.map((u, i) => (
+            <article
+              class="reveal card flex flex-col p-6"
+              style={`animation-delay: ${i * 70}ms;`}
+            >
+              <span
+                class="grid h-10 w-10 place-items-center rounded-lg bg-bg-deep text-ink"
+                aria-hidden="true"
+              >
+                {u.icon === "flask" && (
+                  <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 3h6M10 3v6L4 19a2 2 0 0 0 2 3h12a2 2 0 0 0 2-3l-6-10V3" />
+                  </svg>
+                )}
+                {u.icon === "book" && (
+                  <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5ZM4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                  </svg>
+                )}
+                {u.icon === "code" && (
+                  <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m16 18 6-6-6-6M8 6l-6 6 6 6" />
+                  </svg>
+                )}
+              </span>
+              <h3 class="mt-5 font-display text-[1.0625rem] font-semibold tracking-tight text-ink">
+                {u.title}
+              </h3>
+              <p class="mt-2 text-[13.5px] leading-relaxed text-ink-muted">
+                {u.body}
+              </p>
+            </article>
+          ))
+        }
+      </div>
+
+      <aside
+        class="reveal card relative flex flex-col gap-5 overflow-hidden p-6"
+        style="animation-delay: 220ms;"
+      >
+        <div class="flex items-center gap-2">
+          <span class="grid h-7 w-7 place-items-center rounded-lg bg-signal-amber/10 text-signal-amber">
+            <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 9v4M12 17h.01" />
+              <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" />
+            </svg>
+          </span>
+          <span class="eyebrow">Not designed for</span>
+        </div>
+        <ul class="space-y-2.5">
+          {notFor.map((n) => (
+            <li class="flex items-start gap-3 text-[13.5px] text-ink-muted">
+              <span class="mt-1.5 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-ink-soft/50" />
+              <span>{n}</span>
+            </li>
+          ))}
+        </ul>
+        <div class="mt-auto rounded-xl border border-line bg-bg-deep/50 p-4 text-[12.5px] leading-relaxed text-ink-soft">
+          For those workloads use XGBoost, LightGBM or CatBoost. GRNBT is the
+          <em class="text-ink">transparent reference</em>.
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>

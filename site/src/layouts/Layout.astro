@@ -1,0 +1,108 @@
+---
+import "../styles/global.css";
+import { withBase } from "../lib/paths";
+
+export interface Props {
+  title?: string;
+  description?: string;
+  canonical?: string;
+}
+
+const {
+  title = "GRNBT — Gradient Regularized Newton Boosting Trees",
+  description = "A pure-Python, NumPy-only reproduction of gradient-regularized Newton boosting trees — second-order boosting with adaptive regularization and global convergence guarantees.",
+  canonical,
+} = Astro.props as Props;
+
+const fullTitle = title.includes("GRNBT") ? title : `${title} · GRNBT`;
+const canonicalUrl =
+  canonical ??
+  new URL(Astro.url.pathname, Astro.site ?? "https://sachncs.github.io").toString();
+---
+
+<!doctype html>
+<html lang="en" class="scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="theme-color" content="#0a0a09" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#fafaf7" media="(prefers-color-scheme: light)" />
+    <link rel="icon" type="image/svg+xml" href={withBase("favicon.svg")} />
+    <link rel="canonical" href={canonicalUrl} />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    />
+
+    <script is:inline>
+      (function () {
+        try {
+          const stored = localStorage.getItem("grnbt-theme");
+          const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+          const isDark = stored ? stored === "dark" : prefersDark;
+          document.documentElement.classList.toggle("dark", isDark);
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body class="bg-base text-ink antialiased selection:bg-accent-500/20">
+    <a
+      href="#main"
+      class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-ink focus:px-4 focus:py-2 focus:text-bg"
+    >
+      Skip to content
+    </a>
+
+    <slot />
+
+    <script>
+      // Scroll reveal
+      const io = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            if (entry.isIntersecting) {
+              entry.target.classList.add("in");
+              io.unobserve(entry.target);
+            }
+          }
+        },
+        { rootMargin: "0px 0px -8% 0px", threshold: 0.08 }
+      );
+      document.querySelectorAll(".reveal").forEach((el) => io.observe(el));
+
+      // Sticky nav style on scroll
+      const nav = document.querySelector<HTMLElement>("[data-nav]");
+      if (nav) {
+        const onScroll = () => {
+          if (window.scrollY > 8) {
+            nav.classList.add("is-scrolled");
+          } else {
+            nav.classList.remove("is-scrolled");
+          }
+        };
+        onScroll();
+        window.addEventListener("scroll", onScroll, { passive: true });
+      }
+    </script>
+  </body>
+</html>
+
+<style>
+  :global(html) {
+    background: var(--bg);
+  }
+</style>

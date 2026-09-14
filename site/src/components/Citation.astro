@@ -1,0 +1,79 @@
+---
+// No base path needed in this component.
+---
+
+<section class="section relative">
+  <div aria-hidden="true" class="absolute inset-0 -z-10 bg-grid opacity-50"></div>
+  <div class="container-page">
+    <div class="reveal grid grid-cols-1 gap-10 lg:grid-cols-12 lg:items-start">
+      <div class="lg:col-span-5">
+        <p class="eyebrow">Reference</p>
+        <h2 class="mt-4 font-display text-display-lg text-balance text-ink">
+          Cite the paper.
+          <span class="text-ink-soft">Build on the code.</span>
+        </h2>
+        <p class="mt-6 text-[15px] leading-relaxed text-ink-muted">
+          If you use this implementation in your research, please cite the
+          accompanying preprint. The library is reproduction code only; the
+          paper contents remain the property of the original authors.
+        </p>
+      </div>
+
+      <div class="lg:col-span-7">
+        <div class="card overflow-hidden">
+          <div class="flex items-center justify-between gap-3 border-b border-line bg-bg-deep/40 px-5 py-2.5">
+            <span class="font-mono text-[12px] text-ink-soft">citation.bib</span>
+            <button
+              class="copy-btn inline-flex items-center gap-1.5 rounded-full border border-line bg-bg-elev px-2.5 py-1 font-mono text-[11px] text-ink-muted transition-colors hover:border-line-strong hover:text-ink"
+              data-copy={`@article{zozoulenko2026grnbt,
+  title  = {Gradient Regularized Newton Boosting Trees with Global Convergence},
+  author = {Zozoulenko, Nikita and Falkowski, Daniel and Cass, Thomas and Gonon, Lucien},
+  journal = {Preprint (arXiv id verification pending)},
+  year   = {2026}
+}`}
+            >
+              <svg viewBox="0 0 24 24" class="h-3 w-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" />
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+              </svg>
+              <span>copy bibtex</span>
+            </button>
+          </div>
+          <pre class="overflow-x-auto px-6 py-5 font-mono text-[12.5px] leading-[1.7] text-ink"><code>{`@article{zozoulenko2026grnbt,
+  title  = {Gradient Regularized Newton Boosting Trees
+            with Global Convergence},
+  author = {Zozoulenko, Nikita and
+            Falkowski, Daniel and
+            Cass, Thomas and
+            Gonon, Lucien},
+  journal = {Preprint (arXiv id verification pending)},
+  year   = {2026}
+}`}</code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>(".copy-btn").forEach((btn) => {
+    if (btn.dataset.copyBound) return;
+    btn.dataset.copyBound = "true";
+    btn.addEventListener("click", async () => {
+      const text = btn.getAttribute("data-copy") ?? "";
+      try {
+        await navigator.clipboard.writeText(text);
+        const label = btn.querySelector("span");
+        if (label) {
+          const original = label.textContent;
+          label.textContent = "copied";
+          setTimeout(() => {
+            label.textContent = original;
+          }, 1500);
+        }
+      } catch (e) {
+        /* ignore */
+      }
+    });
+  });
+</script>

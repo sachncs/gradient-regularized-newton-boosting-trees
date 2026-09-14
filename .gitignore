@@ -97,3 +97,8 @@ coverage.xml
 
 # Pre-commit
 .pre-commit-cache
+
+# Site / Astro build (site/dist is the GitHub Pages output; site/node_modules is local)
+site/dist/
+site/node_modules/
+site/.astro/

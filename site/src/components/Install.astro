@@ -1,0 +1,104 @@
+---
+const installs = [
+  {
+    label: "PyPI",
+    cmd: "pip install grnbt",
+  },
+  {
+    label: "From source",
+    cmd: "git clone https://github.com/sachncs/gradient-regularized-newton-boosting-trees.git\ncd gradient-regularized-newton-boosting-trees\npip install -e .",
+  },
+  {
+    label: "With extras",
+    cmd: "pip install -e \".[dev]\"   # adds pytest, mypy, scikit-learn, matplotlib",
+  },
+];
+---
+
+<section id="install" class="section relative">
+  <div aria-hidden="true" class="absolute inset-0 -z-10 bg-bg-deep/60"></div>
+  <div class="container-page">
+    <div class="grid grid-cols-1 gap-12 lg:grid-cols-12">
+      <div class="reveal lg:col-span-5">
+        <p class="eyebrow">Quick start</p>
+        <h2 class="mt-4 font-display text-display-lg text-balance text-ink">
+          From <code class="font-mono text-accent-500">pip install</code> to
+          paper-faithful training in seconds.
+        </h2>
+        <p class="mt-6 text-[15px] leading-relaxed text-ink-muted">
+          The package is pure NumPy. Optional extras pull in
+          scikit-learn for datasets and matplotlib for plots.
+        </p>
+
+        <ul class="mt-8 space-y-3">
+          <li class="flex items-center gap-3 text-[13.5px] text-ink-muted">
+            <span class="grid h-5 w-5 place-items-center rounded-full bg-signal-green/15 text-signal-green">
+              <svg viewBox="0 0 24 24" class="h-3 w-3" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7" /></svg>
+            </span>
+            Python 3.9 → 3.13 supported
+          </li>
+          <li class="flex items-center gap-3 text-[13.5px] text-ink-muted">
+            <span class="grid h-5 w-5 place-items-center rounded-full bg-signal-green/15 text-signal-green">
+              <svg viewBox="0 0 24 24" class="h-3 w-3" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7" /></svg>
+            </span>
+            NumPy ≥ 1.21 (only runtime dep)
+          </li>
+          <li class="flex items-center gap-3 text-[13.5px] text-ink-muted">
+            <span class="grid h-5 w-5 place-items-center rounded-full bg-signal-green/15 text-signal-green">
+              <svg viewBox="0 0 24 24" class="h-3 w-3" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7" /></svg>
+            </span>
+            MIT licensed · No telemetry
+          </li>
+        </ul>
+      </div>
+
+      <div class="lg:col-span-7">
+        <div class="reveal space-y-3">
+          {
+            installs.map((inst, i) => (
+              <div class="card overflow-hidden" style={`animation-delay: ${i * 70}ms;`}>
+                <div class="flex items-center justify-between border-b border-line bg-bg-deep/50 px-5 py-2.5">
+                  <span class="eyebrow">{inst.label}</span>
+                  <button
+                    class="copy-btn inline-flex items-center gap-1.5 rounded-full border border-line bg-bg-elev px-2.5 py-1 font-mono text-[11px] text-ink-muted transition-colors hover:border-line-strong hover:text-ink"
+                    data-copy={inst.cmd}
+                  >
+                    <svg viewBox="0 0 24 24" class="h-3 w-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="9" y="9" width="13" height="13" rx="2" />
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                    </svg>
+                    <span>copy</span>
+                  </button>
+                </div>
+                <pre class="overflow-x-auto px-5 py-4 font-mono text-[13px] leading-[1.7] text-ink"><code>{inst.cmd}</code></pre>
+              </div>
+            ))
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>(".copy-btn").forEach((btn) => {
+    if (btn.dataset.copyBound) return;
+    btn.dataset.copyBound = "true";
+    btn.addEventListener("click", async () => {
+      const text = btn.getAttribute("data-copy") ?? "";
+      try {
+        await navigator.clipboard.writeText(text);
+        const label = btn.querySelector("span");
+        if (label) {
+          const original = label.textContent;
+          label.textContent = "copied";
+          setTimeout(() => {
+            label.textContent = original;
+          }, 1500);
+        }
+      } catch (e) {
+        /* ignore */
+      }
+    });
+  });
+</script>

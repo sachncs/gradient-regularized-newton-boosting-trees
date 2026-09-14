@@ -1,0 +1,93 @@
+---
+const guarantees = [
+  {
+    n: "01",
+    title: "Closed-form leaf weight",
+    formula: "w = -Σg / (Σh + λ)",
+    body: "Algorithm 1, line 4. Each leaf's weight is the exact Newton step on its share of the loss.",
+  },
+  {
+    n: "02",
+    title: "Exact Newton gain",
+    formula: "½[ G²_L/(H_L+λ) + G²_R/(H_R+λ) − G²/(H+λ) ]",
+    body: "Used to rank candidate splits greedily, with no approximation.",
+  },
+  {
+    n: "03",
+    title: "Adaptive λₖ (Proposition 5.1)",
+    formula: "λₖ = λ_base + √(M · ||gₖ||_H)",
+    body: "With M = M₀ · √N and ||gₖ||_H = ||gₖ|| / √N, matching the paper's notation.",
+  },
+  {
+    n: "04",
+    title: "Lemma 4.2 identities",
+    formula: "λ||f|| ≤ ||g||,   ||f||²_K = -⟨g, f⟩",
+    body: "Verified numerically per iteration by verify_lemma_4_2.",
+  },
+  {
+    n: "05",
+    title: "Analytic M₀ (Appendix A)",
+    formula: "MSE = 0 · Charbonnier = 1 · BCE/CCE = ¼",
+    body: "Hessian-Lipschitz constants, hard-coded per loss — no estimation step.",
+  },
+  {
+    n: "06",
+    title: "Multi-class block Hessian",
+    formula: "diag(p) − p pᵀ",
+    body: "Extracted to per-class diagonals for the K-class Newton tree builder.",
+  },
+];
+---
+
+<section id="guarantees" class="section">
+  <div class="container-page">
+    <div class="reveal grid grid-cols-1 items-end gap-6 lg:grid-cols-12">
+      <div class="lg:col-span-7">
+        <p class="eyebrow">Mathematical guarantees</p>
+        <h2 class="mt-4 font-display text-display-lg text-balance text-ink">
+          Six identities. One implementation.
+        </h2>
+      </div>
+      <p class="text-[14.5px] leading-relaxed text-ink-muted lg:col-span-5">
+        Every closed-form in the paper maps to a test. The library is
+        byte-faithful to Zozoulenko et al. (2026); see
+        <code class="font-mono text-ink">docs/fidelity.md</code> for the
+        section-by-section report.
+      </p>
+    </div>
+
+    <div class="mt-14 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      {
+        guarantees.map((g, i) => (
+          <article
+            class="reveal card relative flex flex-col p-6 md:p-7"
+            style={`animation-delay: ${i * 60}ms;`}
+          >
+            <header class="flex items-center justify-between">
+              <span
+                class="font-mono text-[12px] tracking-[0.2em] text-ink-soft"
+              >
+                {g.n}
+              </span>
+              <span class="chip !py-0.5">
+                <span class="chip-dot"></span>
+                Verified
+              </span>
+            </header>
+            <h3 class="mt-5 font-display text-[1.0625rem] font-semibold tracking-tight text-ink">
+              {g.title}
+            </h3>
+            <div
+              class="mt-4 overflow-x-auto rounded-lg border border-line bg-bg-deep/60 px-4 py-3 font-mono text-[12.5px] leading-[1.5] text-accent-500"
+            >
+              {g.formula}
+            </div>
+            <p class="mt-3 text-[13.5px] leading-relaxed text-ink-muted">
+              {g.body}
+            </p>
+          </article>
+        ))
+      }
+    </div>
+  </div>
+</section>
